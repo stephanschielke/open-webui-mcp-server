@@ -239,13 +239,17 @@ class OpenWebUIClient:
         self,
         name: str,
         description: str = "",
+        data: Optional[dict] = None,
         api_key: Optional[str] = None,
     ) -> dict:
         """Create a new knowledge base."""
+        payload = {"name": name, "description": description}
+        if data is not None:
+            payload["data"] = data
         return await self.post(
             "/api/v1/knowledge/create",
             api_key,
-            json={"name": name, "description": description},
+            json=payload,
         )
 
     async def update_knowledge(
@@ -471,10 +475,8 @@ class OpenWebUIClient:
         api_key: Optional[str] = None,
     ) -> dict:
         """Create a new tool."""
-        data = {"id": id, "name": name, "content": content}
-        if meta:
-            data["meta"] = meta
-        return await self.post("/api/v1/tools/create", api_key, json=data)
+        payload = {"id": id, "name": name, "content": content, "meta": meta or {}}
+        return await self.post("/api/v1/tools/create", api_key, json=payload)
 
     async def update_tool(
         self,
@@ -521,8 +523,6 @@ class OpenWebUIClient:
     ) -> dict:
         """Create a new function (filter/pipe)."""
         data = {"id": id, "name": name, "type": type, "content": content, "meta": meta or {}}
-        if meta:
-            data["meta"] = meta
         return await self.post("/api/v1/functions/create", api_key, json=data)
 
     async def update_function(
