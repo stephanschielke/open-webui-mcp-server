@@ -175,7 +175,7 @@ class OpenWebUIClient:
 
     async def list_models(self, api_key: Optional[str] = None) -> dict:
         """List all models."""
-        return await self.get("/api/v1/models/", api_key)
+        return await self.get("/api/v1/models/list", api_key)
 
     async def get_model(self, model_id: str, api_key: Optional[str] = None) -> dict:
         """Get a specific model."""
@@ -551,7 +551,7 @@ class OpenWebUIClient:
 
     async def get_config(self, api_key: Optional[str] = None) -> dict:
         """Get system configuration (admin only)."""
-        return await self.get("/api/v1/configs/", api_key)
+        return await self.get("/api/v1/configs/export", api_key)
 
     async def export_config(self, api_key: Optional[str] = None) -> dict:
         """Export full configuration (admin only)."""
@@ -649,7 +649,7 @@ class OpenWebUIClient:
 
     async def list_channels(self, api_key: Optional[str] = None) -> dict:
         """List channels accessible to the user."""
-        return await self.get("/api/v1/channels/", api_key)
+        return await self.get("/api/v1/channels/list", api_key)
 
     async def create_channel(
         self,
