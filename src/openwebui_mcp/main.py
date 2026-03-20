@@ -185,6 +185,8 @@ class FunctionCreateParam(BaseModel):
     name: str = Field(description="Function name")
     type: str = Field(description="Type: 'filter' or 'pipe'")
     content: str = Field(description="Function Python code")
+    meta: Optional[dict] = Field(default=None, description="Optional metadata")
+
 
 class FunctionIdParam(BaseModel):
     function_id: str = Field(description="Function ID")

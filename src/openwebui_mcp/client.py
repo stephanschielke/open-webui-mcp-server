@@ -520,7 +520,7 @@ class OpenWebUIClient:
         api_key: Optional[str] = None,
     ) -> dict:
         """Create a new function (filter/pipe)."""
-        data = {"id": id, "name": name, "type": type, "content": content}
+        data = {"id": id, "name": name, "type": type, "content": content, "meta": meta or {}}
         if meta:
             data["meta"] = meta
         return await self.post("/api/v1/functions/create", api_key, json=data)
