@@ -18,13 +18,13 @@ def main():
     """Run the MCP server."""
     import sys
 
-    if not os.getenv("OPENWEBUI_URL"):
-        print("ERROR: OPENWEBUI_URL environment variable is required", file=sys.stderr)
-        print("Example: export OPENWEBUI_URL=https://ai.example.com", file=sys.stderr)
+    if not os.getenv("WEBUI_URL"):
+        print("ERROR: WEBUI_URL environment variable is required", file=sys.stderr)
+        print("Example: export WEBUI_URL=https://ai.example.com", file=sys.stderr)
         sys.exit(1)
 
     transport = os.getenv("MCP_TRANSPORT", "stdio").lower()
-    host = os.getenv("MCP_HTTP_HOST", "0.0.0.0")
+    host = os.getenv("MCP_HTTP_HOST", "127.0.0.1")
     port = int(os.getenv("MCP_HTTP_PORT", "8000"))
     path = os.getenv("MCP_HTTP_PATH", "/mcp")
 

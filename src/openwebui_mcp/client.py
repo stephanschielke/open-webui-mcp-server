@@ -35,11 +35,11 @@ class OpenWebUIClient:
             base_url: Open WebUI base URL (e.g., https://ai.example.com)
             api_key: User's API key/Bearer token for authentication
         """
-        self.base_url = (base_url or os.getenv("OPENWEBUI_URL", "")).rstrip("/")
-        self.api_key = api_key or os.getenv("OPENWEBUI_API_KEY", "")
+        self.base_url = (base_url or os.getenv("WEBUI_URL", "")).rstrip("/")
+        self.api_key = api_key or os.getenv("WEBUI_API_KEY", "")
 
         if not self.base_url:
-            raise ValueError("Open WebUI URL required. Set OPENWEBUI_URL env var or pass base_url.")
+            raise ValueError("Open WebUI URL required. Set WEBUI_URL env var or pass base_url.")
 
     def _get_headers(self, api_key: Optional[str] = None) -> dict[str, str]:
         """Get request headers with authentication."""

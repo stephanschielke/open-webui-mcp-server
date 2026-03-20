@@ -11,7 +11,7 @@ def get_user_token() -> Optional[str]:
     token = _current_user_token.get()
     if token:
         return token
-    return os.getenv("OPENWEBUI_API_KEY")
+    return os.getenv("WEBUI_API_KEY")
 
 
 class AuthMiddleware:
