@@ -1,6 +1,7 @@
 name: Publish Python distribution to PyPI
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main ]
     tags: [ "v*" ]
@@ -30,12 +31,12 @@ jobs:
 
   publish-dev:
     name: Publish dev release to PyPI
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     environment:
       name: pypi-dev
-      url: https://pypi.org/p/openwebui-mcp-server
+      url: https://test.pypi.org/p/openwebui-mcp-server
     permissions:
       id-token: write
     steps:
@@ -49,37 +50,44 @@ jobs:
         run: uv pip install build
       - name: Build with dev version
         run: mise run build
-      - name: Publish to PyPI
+      - name: Publish to Test PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{ secrets.PYPI_ACCOUNT_API_TOKEN }}
+          repository-url: https://test.pypi.org/p/openwebui-mcp-server
+          user: '__token__'
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          packages-dir: 'dist'
+          print-hash: 'true'
+          skip-existing: 'true'
+          verify-metadata: 'true'
+          verbose: 'true'
 
-  publish-release:
-    name: Publish release to PyPI
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: pypi-release
-      url: https://pypi.org/p/openwebui-mcp-server
-    permissions:
-      id-token: write
-    steps:
-      - uses: actions/checkout@v6
-      - uses: jdx/mise-action@v4
-      - name: Extract version from tag
-        id: version
-        run: |
-          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
-          echo "tag_version=$TAG_VERSION" >> $GITHUB_OUTPUT
-      - name: Set release version from tag
-        run: |
-          sed -i "s/^version = \".*\"/version = \"${{ steps.version.outputs.tag_version }}\"/" pyproject.toml
-      - name: Install build dependencies
-        run: uv pip install build
-      - name: Build with release version
-        run: mise run build
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_ACCOUNT_API_TOKEN }}
+#  publish-release:
+#    name: Publish release to PyPI
+#    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+#    needs: build
+#    runs-on: ubuntu-latest
+#    environment:
+#      name: pypi-release
+#      url: https://pypi.org/p/openwebui-mcp-server
+#    permissions:
+#      id-token: write
+#    steps:
+#      - uses: actions/checkout@v6
+#      - uses: jdx/mise-action@v4
+#      - name: Extract version from tag
+#        id: version
+#        run: |
+#          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+#          echo "tag_version=$TAG_VERSION" >> $GITHUB_OUTPUT
+#      - name: Set release version from tag
+#        run: |
+#          sed -i "s/^version = \".*\"/version = \"${{ steps.version.outputs.tag_version }}\"/" pyproject.toml
+#      - name: Install build dependencies
+#        run: uv pip install build
+#      - name: Build with release version
+#        run: mise run build
+#      - name: Publish to PyPI
+#        uses: pypa/gh-action-pypi-publish@release/v1
+#        with:
+#          password: ${{ secrets.PYPI_API_TOKEN }}
