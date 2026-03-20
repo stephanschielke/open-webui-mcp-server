@@ -10,6 +10,7 @@ jq = "latest"
 shfmt = "latest"
 ghalint = "latest"
 github-cli = "latest"
+act = "latest"
 
 [settings.python]
 uv_venv_auto = "create|source"
