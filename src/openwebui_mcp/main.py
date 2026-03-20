@@ -64,28 +64,35 @@ def get_user_token() -> Optional[str]:
 # Parameter Models
 # =============================================================================
 
+
 class UserIdParam(BaseModel):
     user_id: str = Field(description="User ID")
+
 
 class UserRoleParam(BaseModel):
     user_id: str = Field(description="User ID")
     role: str = Field(description="New role: 'admin', 'user', or 'pending'")
 
+
 class GroupCreateParam(BaseModel):
     name: str = Field(description="Group name")
     description: str = Field(default="", description="Group description")
 
+
 class GroupIdParam(BaseModel):
     group_id: str = Field(description="Group ID")
+
 
 class GroupUpdateParam(BaseModel):
     group_id: str = Field(description="Group ID")
     name: Optional[str] = Field(default=None, description="New group name")
     description: Optional[str] = Field(default=None, description="New group description")
 
+
 class GroupUserParam(BaseModel):
     group_id: str = Field(description="Group ID")
     user_id: str = Field(description="User ID to add/remove")
+
 
 class ModelCreateParam(BaseModel):
     id: str = Field(description="Model ID (slug-format)")
@@ -95,8 +102,10 @@ class ModelCreateParam(BaseModel):
     temperature: Optional[float] = Field(default=None, description="Temperature (0.0-2.0)")
     max_tokens: Optional[int] = Field(default=None, description="Max tokens")
 
+
 class ModelIdParam(BaseModel):
     model_id: str = Field(description="Model ID")
+
 
 class ModelUpdateParam(BaseModel):
     model_id: str = Field(description="Model ID")
@@ -114,60 +123,76 @@ class KnowledgeCreateParam(BaseModel):
 class KnowledgeIdParam(BaseModel):
     knowledge_id: str = Field(description="Knowledge base ID")
 
+
 class KnowledgeUpdateParam(BaseModel):
     knowledge_id: str = Field(description="Knowledge base ID")
     name: Optional[str] = Field(default=None, description="New name")
     description: Optional[str] = Field(default=None, description="New description")
 
+
 class FileIdParam(BaseModel):
     file_id: str = Field(description="File ID")
+
 
 class FileSearchParam(BaseModel):
     filename: str = Field(description="Filename pattern (supports wildcards like *.pdf)")
 
+
 class FileContentParam(BaseModel):
     file_id: str = Field(description="File ID")
     content: str = Field(description="New text content")
+
 
 class PromptCreateParam(BaseModel):
     command: str = Field(description="Command trigger (e.g., '/summarize')")
     title: str = Field(description="Prompt title")
     content: str = Field(description="Prompt template content")
 
+
 class PromptIdParam(BaseModel):
     command: str = Field(description="Command (without leading slash)")
+
 
 class PromptUpdateParam(BaseModel):
     command: str = Field(description="Command (without leading slash)")
     title: Optional[str] = Field(default=None, description="New title")
     content: Optional[str] = Field(default=None, description="New content")
 
+
 class MemoryAddParam(BaseModel):
     content: str = Field(description="Memory content to store")
 
+
 class MemoryIdParam(BaseModel):
     memory_id: str = Field(description="Memory ID")
+
 
 class MemoryUpdateParam(BaseModel):
     memory_id: str = Field(description="Memory ID")
     content: str = Field(description="New content")
 
+
 class MemoryQueryParam(BaseModel):
     content: str = Field(description="Query text for semantic search")
     k: int = Field(default=5, description="Number of results to return")
 
+
 class ChatIdParam(BaseModel):
     chat_id: str = Field(description="Chat ID")
+
 
 class FolderCreateParam(BaseModel):
     name: str = Field(description="Folder name")
 
+
 class FolderIdParam(BaseModel):
     folder_id: str = Field(description="Folder ID")
+
 
 class FolderUpdateParam(BaseModel):
     folder_id: str = Field(description="Folder ID")
     name: str = Field(description="New folder name")
+
 
 class ToolCreateParam(BaseModel):
     id: str = Field(description="Tool ID (slug-format)")
@@ -178,6 +203,7 @@ class ToolCreateParam(BaseModel):
 
 class ToolIdParam(BaseModel):
     tool_id: str = Field(description="Tool ID")
+
 
 class ToolUpdateParam(BaseModel):
     tool_id: str = Field(description="Tool ID")
@@ -197,44 +223,54 @@ class FunctionCreateParam(BaseModel):
 class FunctionIdParam(BaseModel):
     function_id: str = Field(description="Function ID")
 
+
 class FunctionUpdateParam(BaseModel):
     function_id: str = Field(description="Function ID")
     name: Optional[str] = Field(default=None, description="New name")
     content: Optional[str] = Field(default=None, description="New code")
 
+
 class NoteCreateParam(BaseModel):
     title: str = Field(description="Note title")
     content: str = Field(description="Note content (markdown supported)")
 
+
 class NoteIdParam(BaseModel):
     note_id: str = Field(description="Note ID")
+
 
 class NoteUpdateParam(BaseModel):
     note_id: str = Field(description="Note ID")
     title: Optional[str] = Field(default=None, description="New title")
     content: Optional[str] = Field(default=None, description="New content")
 
+
 class ChannelCreateParam(BaseModel):
     name: str = Field(description="Channel name")
     description: str = Field(default="", description="Channel description")
 
+
 class ChannelIdParam(BaseModel):
     channel_id: str = Field(description="Channel ID")
+
 
 class ChannelUpdateParam(BaseModel):
     channel_id: str = Field(description="Channel ID")
     name: Optional[str] = Field(default=None, description="New channel name")
     description: Optional[str] = Field(default=None, description="New description")
 
+
 class ChannelMessageParam(BaseModel):
     channel_id: str = Field(description="Channel ID")
     content: str = Field(description="Message content")
     parent_id: Optional[str] = Field(default=None, description="Parent message ID for threading")
 
+
 class ChannelMessagesParam(BaseModel):
     channel_id: str = Field(description="Channel ID")
     skip: int = Field(default=0, description="Number of messages to skip")
     limit: int = Field(default=50, description="Maximum number of messages to return")
+
 
 class ChannelMessageIdParam(BaseModel):
     channel_id: str = Field(description="Channel ID")
@@ -245,26 +281,31 @@ class ChannelMessageIdParam(BaseModel):
 # User Management Tools
 # =============================================================================
 
+
 @mcp.tool()
 async def get_current_user(ctx: Context) -> dict[str, Any]:
     """Get the currently authenticated user's profile.
     Returns your ID, name, email, role, and permissions."""
     return await get_client().get_current_user(get_user_token())
 
+
 @mcp.tool()
 async def list_users(ctx: Context) -> dict[str, Any]:
     """List all users in Open WebUI. ADMIN ONLY."""
     return await get_client().list_users(get_user_token())
+
 
 @mcp.tool()
 async def get_user(params: UserIdParam, ctx: Context) -> dict[str, Any]:
     """Get details for a specific user. ADMIN ONLY."""
     return await get_client().get_user(params.user_id, get_user_token())
 
+
 @mcp.tool()
 async def update_user_role(params: UserRoleParam, ctx: Context) -> dict[str, Any]:
     """Update a user's role. ADMIN ONLY. Roles: 'admin', 'user', 'pending'."""
     return await get_client().update_user_role(params.user_id, params.role, get_user_token())
+
 
 @mcp.tool()
 async def delete_user(params: UserIdParam, ctx: Context) -> dict[str, Any]:
@@ -276,35 +317,46 @@ async def delete_user(params: UserIdParam, ctx: Context) -> dict[str, Any]:
 # Group Management Tools
 # =============================================================================
 
+
 @mcp.tool()
 async def list_groups(ctx: Context) -> dict[str, Any]:
     """List all groups with their IDs, names, and member counts."""
     return await get_client().list_groups(get_user_token())
+
 
 @mcp.tool()
 async def create_group(params: GroupCreateParam, ctx: Context) -> dict[str, Any]:
     """Create a new group. ADMIN ONLY."""
     return await get_client().create_group(params.name, params.description, get_user_token())
 
+
 @mcp.tool()
 async def get_group(params: GroupIdParam, ctx: Context) -> dict[str, Any]:
     """Get details for a specific group including members."""
     return await get_client().get_group(params.group_id, get_user_token())
 
+
 @mcp.tool()
 async def update_group(params: GroupUpdateParam, ctx: Context) -> dict[str, Any]:
     """Update a group's name or description. ADMIN ONLY."""
-    return await get_client().update_group(params.group_id, params.name, params.description, get_user_token())
+    return await get_client().update_group(
+        params.group_id, params.name, params.description, get_user_token()
+    )
+
 
 @mcp.tool()
 async def add_user_to_group(params: GroupUserParam, ctx: Context) -> dict[str, Any]:
     """Add a user to a group. ADMIN ONLY."""
     return await get_client().add_user_to_group(params.group_id, params.user_id, get_user_token())
 
+
 @mcp.tool()
 async def remove_user_from_group(params: GroupUserParam, ctx: Context) -> dict[str, Any]:
     """Remove a user from a group. ADMIN ONLY."""
-    return await get_client().remove_user_from_group(params.group_id, params.user_id, get_user_token())
+    return await get_client().remove_user_from_group(
+        params.group_id, params.user_id, get_user_token()
+    )
+
 
 @mcp.tool()
 async def delete_group(params: GroupIdParam, ctx: Context) -> dict[str, Any]:
@@ -316,15 +368,18 @@ async def delete_group(params: GroupIdParam, ctx: Context) -> dict[str, Any]:
 # Model Management Tools
 # =============================================================================
 
+
 @mcp.tool()
 async def list_models(ctx: Context) -> dict[str, Any]:
     """List all available models including custom models."""
     return await get_client().list_models(get_user_token())
 
+
 @mcp.tool()
 async def get_model(params: ModelIdParam, ctx: Context) -> dict[str, Any]:
     """Get details for a specific model including system prompt and parameters."""
     return await get_client().get_model(params.model_id, get_user_token())
+
 
 @mcp.tool()
 async def create_model(params: ModelCreateParam, ctx: Context) -> dict[str, Any]:
@@ -338,10 +393,14 @@ async def create_model(params: ModelCreateParam, ctx: Context) -> dict[str, Any]
     if params.max_tokens is not None:
         model_params["max_tokens"] = params.max_tokens
     return await get_client().create_model(
-        id=params.id, name=params.name, base_model_id=params.base_model_id,
-        meta=meta if meta else None, params=model_params if model_params else None,
-        api_key=get_user_token()
+        id=params.id,
+        name=params.name,
+        base_model_id=params.base_model_id,
+        meta=meta if meta else None,
+        params=model_params if model_params else None,
+        api_key=get_user_token(),
     )
+
 
 @mcp.tool()
 async def update_model(params: ModelUpdateParam, ctx: Context) -> dict[str, Any]:
@@ -361,15 +420,18 @@ async def delete_model(params: ModelIdParam, ctx: Context) -> dict[str, Any]:
 # Knowledge Base Management Tools
 # =============================================================================
 
+
 @mcp.tool()
 async def list_knowledge_bases(ctx: Context) -> dict[str, Any]:
     """List all knowledge bases with their IDs, names, and descriptions."""
     return await get_client().list_knowledge(get_user_token())
 
+
 @mcp.tool()
 async def get_knowledge_base(params: KnowledgeIdParam, ctx: Context) -> dict[str, Any]:
     """Get details for a knowledge base including file list."""
     return await get_client().get_knowledge(params.knowledge_id, get_user_token())
+
 
 @mcp.tool()
 async def create_knowledge_base(params: KnowledgeCreateParam, ctx: Context) -> dict[str, Any]:
@@ -382,7 +444,10 @@ async def create_knowledge_base(params: KnowledgeCreateParam, ctx: Context) -> d
 @mcp.tool()
 async def update_knowledge_base(params: KnowledgeUpdateParam, ctx: Context) -> dict[str, Any]:
     """Update a knowledge base's name or description."""
-    return await get_client().update_knowledge(params.knowledge_id, params.name, params.description, get_user_token())
+    return await get_client().update_knowledge(
+        params.knowledge_id, params.name, params.description, get_user_token()
+    )
+
 
 @mcp.tool()
 async def delete_knowledge_base(params: KnowledgeIdParam, ctx: Context) -> dict[str, Any]:
@@ -394,35 +459,42 @@ async def delete_knowledge_base(params: KnowledgeIdParam, ctx: Context) -> dict[
 # File Management Tools
 # =============================================================================
 
+
 @mcp.tool()
 async def list_files(ctx: Context) -> dict[str, Any]:
     """List all uploaded files with metadata."""
     return await get_client().list_files(get_user_token())
+
 
 @mcp.tool()
 async def search_files(params: FileSearchParam, ctx: Context) -> dict[str, Any]:
     """Search files by filename pattern. Supports wildcards like *.pdf"""
     return await get_client().search_files(params.filename, get_user_token())
 
+
 @mcp.tool()
 async def get_file(params: FileIdParam, ctx: Context) -> dict[str, Any]:
     """Get metadata for a specific file."""
     return await get_client().get_file(params.file_id, get_user_token())
+
 
 @mcp.tool()
 async def get_file_content(params: FileIdParam, ctx: Context) -> dict[str, Any]:
     """Get the extracted text content from a file."""
     return await get_client().get_file_content(params.file_id, get_user_token())
 
+
 @mcp.tool()
 async def update_file_content(params: FileContentParam, ctx: Context) -> dict[str, Any]:
     """Update the extracted text content of a file."""
     return await get_client().update_file_content(params.file_id, params.content, get_user_token())
 
+
 @mcp.tool()
 async def delete_file(params: FileIdParam, ctx: Context) -> dict[str, Any]:
     """Delete a file."""
     return await get_client().delete_file(params.file_id, get_user_token())
+
 
 @mcp.tool()
 async def delete_all_files(ctx: Context) -> dict[str, Any]:
@@ -434,25 +506,34 @@ async def delete_all_files(ctx: Context) -> dict[str, Any]:
 # Prompt Management Tools
 # =============================================================================
 
+
 @mcp.tool()
 async def list_prompts(ctx: Context) -> dict[str, Any]:
     """List all prompt templates."""
     return await get_client().list_prompts(get_user_token())
 
+
 @mcp.tool()
 async def create_prompt(params: PromptCreateParam, ctx: Context) -> dict[str, Any]:
     """Create a new prompt template triggered by a command."""
-    return await get_client().create_prompt(params.command, params.title, params.content, get_user_token())
+    return await get_client().create_prompt(
+        params.command, params.title, params.content, get_user_token()
+    )
+
 
 @mcp.tool()
 async def get_prompt(params: PromptIdParam, ctx: Context) -> dict[str, Any]:
     """Get a prompt template by its command."""
     return await get_client().get_prompt(params.command, get_user_token())
 
+
 @mcp.tool()
 async def update_prompt(params: PromptUpdateParam, ctx: Context) -> dict[str, Any]:
     """Update a prompt template."""
-    return await get_client().update_prompt(params.command, params.title, params.content, get_user_token())
+    return await get_client().update_prompt(
+        params.command, params.title, params.content, get_user_token()
+    )
+
 
 @mcp.tool()
 async def delete_prompt(params: PromptIdParam, ctx: Context) -> dict[str, Any]:
@@ -464,35 +545,42 @@ async def delete_prompt(params: PromptIdParam, ctx: Context) -> dict[str, Any]:
 # Memory Management Tools
 # =============================================================================
 
+
 @mcp.tool()
 async def list_memories(ctx: Context) -> dict[str, Any]:
     """List all your stored memories."""
     return await get_client().list_memories(get_user_token())
+
 
 @mcp.tool()
 async def add_memory(params: MemoryAddParam, ctx: Context) -> dict[str, Any]:
     """Add a new memory to your memory store."""
     return await get_client().add_memory(params.content, get_user_token())
 
+
 @mcp.tool()
 async def query_memories(params: MemoryQueryParam, ctx: Context) -> dict[str, Any]:
     """Search memories using semantic similarity."""
     return await get_client().query_memories(params.content, params.k, get_user_token())
+
 
 @mcp.tool()
 async def update_memory(params: MemoryUpdateParam, ctx: Context) -> dict[str, Any]:
     """Update an existing memory."""
     return await get_client().update_memory(params.memory_id, params.content, get_user_token())
 
+
 @mcp.tool()
 async def delete_memory(params: MemoryIdParam, ctx: Context) -> dict[str, Any]:
     """Delete a specific memory."""
     return await get_client().delete_memory(params.memory_id, get_user_token())
 
+
 @mcp.tool()
 async def delete_all_memories(ctx: Context) -> dict[str, Any]:
     """Delete all your memories. WARNING: Cannot be undone!"""
     return await get_client().delete_all_memories(get_user_token())
+
 
 @mcp.tool()
 async def reset_memories(ctx: Context) -> dict[str, Any]:
@@ -504,35 +592,42 @@ async def reset_memories(ctx: Context) -> dict[str, Any]:
 # Chat Management Tools
 # =============================================================================
 
+
 @mcp.tool()
 async def list_chats(ctx: Context) -> dict[str, Any]:
     """List your chats."""
     return await get_client().list_chats(get_user_token())
+
 
 @mcp.tool()
 async def get_chat(params: ChatIdParam, ctx: Context) -> dict[str, Any]:
     """Get a chat's details and message history."""
     return await get_client().get_chat(params.chat_id, get_user_token())
 
+
 @mcp.tool()
 async def delete_chat(params: ChatIdParam, ctx: Context) -> dict[str, Any]:
     """Delete a chat."""
     return await get_client().delete_chat(params.chat_id, get_user_token())
+
 
 @mcp.tool()
 async def delete_all_chats(ctx: Context) -> dict[str, Any]:
     """Delete all your chats. WARNING: Cannot be undone!"""
     return await get_client().delete_all_chats(get_user_token())
 
+
 @mcp.tool()
 async def archive_chat(params: ChatIdParam, ctx: Context) -> dict[str, Any]:
     """Archive a chat."""
     return await get_client().archive_chat(params.chat_id, get_user_token())
 
+
 @mcp.tool()
 async def share_chat(params: ChatIdParam, ctx: Context) -> dict[str, Any]:
     """Share a chat (make it publicly accessible)."""
     return await get_client().share_chat(params.chat_id, get_user_token())
+
 
 @mcp.tool()
 async def clone_chat(params: ChatIdParam, ctx: Context) -> dict[str, Any]:
@@ -544,25 +639,30 @@ async def clone_chat(params: ChatIdParam, ctx: Context) -> dict[str, Any]:
 # Folder Management Tools
 # =============================================================================
 
+
 @mcp.tool()
 async def list_folders(ctx: Context) -> dict[str, Any]:
     """List all folders for organizing chats."""
     return await get_client().list_folders(get_user_token())
+
 
 @mcp.tool()
 async def create_folder(params: FolderCreateParam, ctx: Context) -> dict[str, Any]:
     """Create a new folder."""
     return await get_client().create_folder(params.name, get_user_token())
 
+
 @mcp.tool()
 async def get_folder(params: FolderIdParam, ctx: Context) -> dict[str, Any]:
     """Get folder details."""
     return await get_client().get_folder(params.folder_id, get_user_token())
 
+
 @mcp.tool()
 async def update_folder(params: FolderUpdateParam, ctx: Context) -> dict[str, Any]:
     """Rename a folder."""
     return await get_client().update_folder(params.folder_id, params.name, get_user_token())
+
 
 @mcp.tool()
 async def delete_folder(params: FolderIdParam, ctx: Context) -> dict[str, Any]:
@@ -574,15 +674,18 @@ async def delete_folder(params: FolderIdParam, ctx: Context) -> dict[str, Any]:
 # Tool Management Tools
 # =============================================================================
 
+
 @mcp.tool()
 async def list_tools(ctx: Context) -> dict[str, Any]:
     """List all available tools (MCP, OpenAPI, custom)."""
     return await get_client().list_tools(get_user_token())
 
+
 @mcp.tool()
 async def get_tool(params: ToolIdParam, ctx: Context) -> dict[str, Any]:
     """Get details for a specific tool."""
     return await get_client().get_tool(params.tool_id, get_user_token())
+
 
 @mcp.tool()
 async def create_tool(params: ToolCreateParam, ctx: Context) -> dict[str, Any]:
@@ -610,15 +713,18 @@ async def delete_tool(params: ToolIdParam, ctx: Context) -> dict[str, Any]:
 # Function Management Tools
 # =============================================================================
 
+
 @mcp.tool()
 async def list_functions(ctx: Context) -> dict[str, Any]:
     """List all functions (filters and pipes)."""
     return await get_client().list_functions(get_user_token())
 
+
 @mcp.tool()
 async def get_function(params: FunctionIdParam, ctx: Context) -> dict[str, Any]:
     """Get details for a specific function."""
     return await get_client().get_function(params.function_id, get_user_token())
+
 
 @mcp.tool()
 async def create_function(params: FunctionCreateParam, ctx: Context) -> dict[str, Any]:
@@ -627,6 +733,7 @@ async def create_function(params: FunctionCreateParam, ctx: Context) -> dict[str
         params.id, params.name, params.type, params.content, api_key=get_user_token()
     )
 
+
 @mcp.tool()
 async def update_function(params: FunctionUpdateParam, ctx: Context) -> dict[str, Any]:
     """Update a function's name or code."""
@@ -634,10 +741,12 @@ async def update_function(params: FunctionUpdateParam, ctx: Context) -> dict[str
         params.function_id, params.name, params.content, api_key=get_user_token()
     )
 
+
 @mcp.tool()
 async def toggle_function(params: FunctionIdParam, ctx: Context) -> dict[str, Any]:
     """Toggle a function's enabled/disabled state."""
     return await get_client().toggle_function(params.function_id, get_user_token())
+
 
 @mcp.tool()
 async def delete_function(params: FunctionIdParam, ctx: Context) -> dict[str, Any]:
@@ -649,25 +758,32 @@ async def delete_function(params: FunctionIdParam, ctx: Context) -> dict[str, An
 # Notes Management Tools
 # =============================================================================
 
+
 @mcp.tool()
 async def list_notes(ctx: Context) -> dict[str, Any]:
     """List all your notes."""
     return await get_client().list_notes(get_user_token())
+
 
 @mcp.tool()
 async def create_note(params: NoteCreateParam, ctx: Context) -> dict[str, Any]:
     """Create a new note with markdown content."""
     return await get_client().create_note(params.title, params.content, get_user_token())
 
+
 @mcp.tool()
 async def get_note(params: NoteIdParam, ctx: Context) -> dict[str, Any]:
     """Get a specific note by ID."""
     return await get_client().get_note(params.note_id, get_user_token())
 
+
 @mcp.tool()
 async def update_note(params: NoteUpdateParam, ctx: Context) -> dict[str, Any]:
     """Update a note's title or content."""
-    return await get_client().update_note(params.note_id, params.title, params.content, get_user_token())
+    return await get_client().update_note(
+        params.note_id, params.title, params.content, get_user_token()
+    )
+
 
 @mcp.tool()
 async def delete_note(params: NoteIdParam, ctx: Context) -> dict[str, Any]:
@@ -679,30 +795,38 @@ async def delete_note(params: NoteIdParam, ctx: Context) -> dict[str, Any]:
 # Channels (Team Chat) Management Tools
 # =============================================================================
 
+
 @mcp.tool()
 async def list_channels(ctx: Context) -> dict[str, Any]:
     """List all team chat channels."""
     return await get_client().list_channels(get_user_token())
+
 
 @mcp.tool()
 async def create_channel(params: ChannelCreateParam, ctx: Context) -> dict[str, Any]:
     """Create a new team chat channel."""
     return await get_client().create_channel(params.name, params.description, get_user_token())
 
+
 @mcp.tool()
 async def get_channel(params: ChannelIdParam, ctx: Context) -> dict[str, Any]:
     """Get details for a specific channel."""
     return await get_client().get_channel(params.channel_id, get_user_token())
 
+
 @mcp.tool()
 async def update_channel(params: ChannelUpdateParam, ctx: Context) -> dict[str, Any]:
     """Update a channel's name or description."""
-    return await get_client().update_channel(params.channel_id, params.name, params.description, get_user_token())
+    return await get_client().update_channel(
+        params.channel_id, params.name, params.description, get_user_token()
+    )
+
 
 @mcp.tool()
 async def delete_channel(params: ChannelIdParam, ctx: Context) -> dict[str, Any]:
     """Delete a channel and all its messages."""
     return await get_client().delete_channel(params.channel_id, get_user_token())
+
 
 @mcp.tool()
 async def get_channel_messages(params: ChannelMessagesParam, ctx: Context) -> dict[str, Any]:
@@ -711,12 +835,14 @@ async def get_channel_messages(params: ChannelMessagesParam, ctx: Context) -> di
         params.channel_id, params.skip, params.limit, get_user_token()
     )
 
+
 @mcp.tool()
 async def post_channel_message(params: ChannelMessageParam, ctx: Context) -> dict[str, Any]:
     """Post a message to a channel. Optionally reply to a parent message."""
     return await get_client().post_channel_message(
         params.channel_id, params.content, params.parent_id, get_user_token()
     )
+
 
 @mcp.tool()
 async def delete_channel_message(params: ChannelMessageIdParam, ctx: Context) -> dict[str, Any]:
@@ -730,25 +856,30 @@ async def delete_channel_message(params: ChannelMessageIdParam, ctx: Context) ->
 # Config/Settings Tools (Admin)
 # =============================================================================
 
+
 @mcp.tool()
 async def get_system_config(ctx: Context) -> dict[str, Any]:
     """Get system configuration. ADMIN ONLY."""
     return await get_client().get_config(get_user_token())
+
 
 @mcp.tool()
 async def export_config(ctx: Context) -> dict[str, Any]:
     """Export full system configuration. ADMIN ONLY."""
     return await get_client().export_config(get_user_token())
 
+
 @mcp.tool()
 async def get_banners(ctx: Context) -> dict[str, Any]:
     """Get system notification banners."""
     return await get_client().get_banners(get_user_token())
 
+
 @mcp.tool()
 async def get_models_config(ctx: Context) -> dict[str, Any]:
     """Get default models configuration. ADMIN ONLY."""
     return await get_client().get_models_config(get_user_token())
+
 
 @mcp.tool()
 async def get_tool_servers(ctx: Context) -> dict[str, Any]:
@@ -759,6 +890,7 @@ async def get_tool_servers(ctx: Context) -> dict[str, Any]:
 # =============================================================================
 # Entry Point
 # =============================================================================
+
 
 def main():
     """Run the MCP server."""
@@ -776,6 +908,7 @@ def main():
 
     if transport == "http":
         import uvicorn
+
         app = mcp.http_app(path=path)
         app = AuthMiddleware(app)
         print(f"Starting Open WebUI MCP server on http://{host}:{port}{path}")

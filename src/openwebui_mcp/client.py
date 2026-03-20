@@ -10,6 +10,7 @@ from typing import Any, Optional
 import httpx
 
 
+# noinspection DuplicatedCode
 class OpenWebUIClient:
     """Client for Open WebUI API with auth passthrough."""
 
@@ -28,9 +29,7 @@ class OpenWebUIClient:
         self.api_key = api_key or os.getenv("OPENWEBUI_API_KEY", "")
 
         if not self.base_url:
-            raise ValueError(
-                "Open WebUI URL required. Set OPENWEBUI_URL env var or pass base_url."
-            )
+            raise ValueError("Open WebUI URL required. Set OPENWEBUI_URL env var or pass base_url.")
 
     def _get_headers(self, api_key: Optional[str] = None) -> dict[str, str]:
         """Get request headers with authentication."""
@@ -182,6 +181,7 @@ class OpenWebUIClient:
         """Get a specific model."""
         return await self.get(f"/api/v1/models/{model_id}", api_key)
 
+    # noinspection PyShadowingBuiltins
     async def create_model(
         self,
         id: str,
@@ -243,7 +243,7 @@ class OpenWebUIClient:
         api_key: Optional[str] = None,
     ) -> dict:
         """Create a new knowledge base."""
-        payload = {"name": name, "description": description}
+        payload: dict[str, Any] = {"name": name, "description": description}
         if data is not None:
             payload["data"] = data
         return await self.post(
@@ -366,13 +366,9 @@ class OpenWebUIClient:
         """Add a new memory."""
         return await self.post("/api/v1/memories/add", api_key, json={"content": content})
 
-    async def query_memories(
-        self, content: str, k: int = 5, api_key: Optional[str] = None
-    ) -> dict:
+    async def query_memories(self, content: str, k: int = 5, api_key: Optional[str] = None) -> dict:
         """Query memories using semantic search."""
-        return await self.post(
-            "/api/v1/memories/query", api_key, json={"content": content, "k": k}
-        )
+        return await self.post("/api/v1/memories/query", api_key, json={"content": content, "k": k})
 
     async def update_memory(
         self, memory_id: str, content: str, api_key: Optional[str] = None
@@ -442,13 +438,9 @@ class OpenWebUIClient:
         """Get a specific folder."""
         return await self.get(f"/api/v1/folders/{folder_id}", api_key)
 
-    async def update_folder(
-        self, folder_id: str, name: str, api_key: Optional[str] = None
-    ) -> dict:
+    async def update_folder(self, folder_id: str, name: str, api_key: Optional[str] = None) -> dict:
         """Update a folder's name."""
-        return await self.post(
-            f"/api/v1/folders/{folder_id}/update", api_key, json={"name": name}
-        )
+        return await self.post(f"/api/v1/folders/{folder_id}/update", api_key, json={"name": name})
 
     async def delete_folder(self, folder_id: str, api_key: Optional[str] = None) -> dict:
         """Delete a folder."""
@@ -466,6 +458,7 @@ class OpenWebUIClient:
         """Get a specific tool."""
         return await self.get(f"/api/v1/tools/id/{tool_id}", api_key)
 
+    # noinspection PyShadowingBuiltins
     async def create_tool(
         self,
         id: str,
@@ -512,6 +505,7 @@ class OpenWebUIClient:
         """Get a specific function."""
         return await self.get(f"/api/v1/functions/id/{function_id}", api_key)
 
+    # noinspection PyShadowingBuiltins
     async def create_function(
         self,
         id: str,
@@ -543,9 +537,7 @@ class OpenWebUIClient:
             data["meta"] = meta
         return await self.post(f"/api/v1/functions/id/{function_id}/update", api_key, json=data)
 
-    async def toggle_function(
-        self, function_id: str, api_key: Optional[str] = None
-    ) -> dict:
+    async def toggle_function(self, function_id: str, api_key: Optional[str] = None) -> dict:
         """Toggle a function's enabled state."""
         return await self.post(f"/api/v1/functions/id/{function_id}/toggle", api_key)
 
@@ -599,9 +591,7 @@ class OpenWebUIClient:
         """Get tool server connections (admin only)."""
         return await self.get("/api/v1/configs/tool_servers", api_key)
 
-    async def set_tool_servers(
-        self, connections: list, api_key: Optional[str] = None
-    ) -> dict:
+    async def set_tool_servers(self, connections: list, api_key: Optional[str] = None) -> dict:
         """Set tool server connections (admin only)."""
         return await self.post(
             "/api/v1/configs/tool_servers",
