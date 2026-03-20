@@ -9,6 +9,16 @@ from typing import Any, Optional
 
 import httpx
 
+_client: Optional["OpenWebUIClient"] = None
+
+
+def get_client() -> "OpenWebUIClient":
+    """Get or create the Open WebUI client."""
+    global _client
+    if _client is None:
+        _client = OpenWebUIClient()
+    return _client
+
 
 # noinspection DuplicatedCode
 class OpenWebUIClient:
