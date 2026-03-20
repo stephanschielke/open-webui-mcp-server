@@ -47,15 +47,15 @@ services:
       dockerfile: Dockerfile
       args:
         # Build args
-        PYTHON_VERSION: "{PYTHON_VERSION:-3.10}"
-        UV_VERSION: "${UV_VERSION:-0.10.11}"
-        # MCP server configuration
-        MCP_TRANSPORT: "{MCP_TRANSPORT:-http}"
-        MCP_HTTP_HOST: "{MCP_HTTP_HOST:-0.0.0.0}"
-        MCP_HTTP_PORT: "{MCP_HTTP_PORT:-8000}"
-        MCP_HTTP_PATH: "{MCP_HTTP_PATH:-/mcp}"
+        PYTHON_VERSION: ${PYTHON_VERSION:-3.10}
+        UV_VERSION: ${UV_VERSION:-0.10.11}
     environment:
       OPENWEBUI_URL: http://open-webui:8080
+      # MCP server configuration
+      MCP_TRANSPORT: ${MCP_TRANSPORT:-http}
+      MCP_HTTP_HOST: ${MCP_HTTP_HOST:-0.0.0.0}
+      MCP_HTTP_PORT: ${MCP_HTTP_PORT:-8000}
+      MCP_HTTP_PATH: ${MCP_HTTP_PATH:-/mcp}
 
 volumes:
   ollama_vol:
