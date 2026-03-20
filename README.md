@@ -197,7 +197,9 @@ ruff --config pyproject.toml check --fix src/
 
 ```bash
 # Run tests
-pytest
+pytest tests;
+# or via `uv`  
+uv run pytest tests/ -v;
 ```
 
 ## License
@@ -207,6 +209,10 @@ MIT License - see [LICENSE](LICENSE) for details.
 ## Contributing
 
 Contributions welcome! Please open an issue or PR on GitHub.
+
+## Consider for adoption
+- [OWUI Python Client](https://github.com/whogben/owui_client) ([docs](https://whogben.github.io/owui_client/))
+- [Github Workflows to PyPi.org](https://packaging.python.org/en/latest/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/)
 
 ## Related Projects
 
