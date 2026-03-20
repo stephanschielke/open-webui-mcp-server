@@ -22,12 +22,12 @@ An MCP (Model Context Protocol) server that exposes Open WebUI's admin APIs as t
 
 ## Installation
 
+**Package not yet publicly published to [pypi.org](https://pypi.org/project/openwebui-mcp-server/)**
+Use a local development version (see [Development](#development))
 ```bash
 pip install openwebui-mcp-server
 ```
-
 Or with uv:
-
 ```bash
 uv pip install openwebui-mcp-server
 ```
@@ -168,14 +168,36 @@ model = await client.create_model(
 git clone https://github.com/troylar/open-webui-mcp-server.git
 cd open-webui-mcp-server
 
-# Install dev dependencies
+# Install dev dependencies and the package itself 
 pip install -e ".[dev]"
+```
+or using uv:
+```bash
+# Install dependencies (with optional dev dependencies)
+uv lock && uv sync --extra="dev"
 
+# Install the project as a package in editable mode (using optional dev dependencies)
+uv pip install -e ".[dev]"
+
+# Check your new executable
+which openwebui-mcp
+open-webui-mcp-server/.venv/bin/openwebui-mcp
+```
+
+### Linter
+
+```bash
+# Run linter
+ruff --config pyproject.toml check src/
+# Fix linting issues
+ruff --config pyproject.toml check --fix src/
+```
+
+### Tests
+
+```bash
 # Run tests
 pytest
-
-# Run linter
-ruff check src/
 ```
 
 ## License
