@@ -9,10 +9,10 @@ through, ensuring all operations respect their permissions.
 """
 
 import os
-from typing import Any, Optional
 from contextvars import ContextVar
+from typing import Any, Optional
 
-from fastmcp import FastMCP, Context
+from fastmcp import Context, FastMCP
 from pydantic import BaseModel, Field
 
 from .client import OpenWebUIClient
@@ -101,13 +101,15 @@ class ModelIdParam(BaseModel):
 class ModelUpdateParam(BaseModel):
     model_id: str = Field(description="Model ID")
     name: Optional[str] = Field(default=None, description="New display name")
-    system_prompt: Optional[str] = Field(default=None, description="New system prompt")
-    temperature: Optional[float] = Field(default=None, description="New temperature")
-    max_tokens: Optional[int] = Field(default=None, description="New max tokens")
+    meta: Optional[dict] = Field(default=None, description="Model metadata")
+    params: Optional[dict] = Field(default=None, description="Model parameters")
+
 
 class KnowledgeCreateParam(BaseModel):
     name: str = Field(description="Knowledge base name")
     description: str = Field(default="", description="Knowledge base description")
+    data: Optional[dict] = Field(default=None, description="Optional data object")
+
 
 class KnowledgeIdParam(BaseModel):
     knowledge_id: str = Field(description="Knowledge base ID")
@@ -171,6 +173,8 @@ class ToolCreateParam(BaseModel):
     id: str = Field(description="Tool ID (slug-format)")
     name: str = Field(description="Tool name")
     content: str = Field(description="Tool Python code")
+    meta: Optional[dict] = Field(default=None, description="Optional metadata")
+
 
 class ToolIdParam(BaseModel):
     tool_id: str = Field(description="Tool ID")
@@ -179,6 +183,8 @@ class ToolUpdateParam(BaseModel):
     tool_id: str = Field(description="Tool ID")
     name: Optional[str] = Field(default=None, description="New name")
     content: Optional[str] = Field(default=None, description="New code")
+    meta: Optional[dict] = Field(default=None, description="Optional metadata")
+
 
 class FunctionCreateParam(BaseModel):
     id: str = Field(description="Function ID (slug-format)")
@@ -339,18 +345,11 @@ async def create_model(params: ModelCreateParam, ctx: Context) -> dict[str, Any]
 
 @mcp.tool()
 async def update_model(params: ModelUpdateParam, ctx: Context) -> dict[str, Any]:
-    """Update a model's name, system prompt, or parameters."""
-    meta = None
-    if params.system_prompt is not None:
-        meta = {"system": params.system_prompt}
-    model_params = None
-    if params.temperature is not None or params.max_tokens is not None:
-        model_params = {}
-        if params.temperature is not None:
-            model_params["temperature"] = params.temperature
-        if params.max_tokens is not None:
-            model_params["max_tokens"] = params.max_tokens
-    return await get_client().update_model(params.model_id, params.name, meta, model_params, get_user_token())
+    """Update a model's name, metadata, or parameters."""
+    return await get_client().update_model(
+        params.model_id, params.name, params.meta, params.params, get_user_token()
+    )
+
 
 @mcp.tool()
 async def delete_model(params: ModelIdParam, ctx: Context) -> dict[str, Any]:
@@ -375,7 +374,10 @@ async def get_knowledge_base(params: KnowledgeIdParam, ctx: Context) -> dict[str
 @mcp.tool()
 async def create_knowledge_base(params: KnowledgeCreateParam, ctx: Context) -> dict[str, Any]:
     """Create a new knowledge base for RAG."""
-    return await get_client().create_knowledge(params.name, params.description, get_user_token())
+    return await get_client().create_knowledge(
+        params.name, params.description, params.data, get_user_token()
+    )
+
 
 @mcp.tool()
 async def update_knowledge_base(params: KnowledgeUpdateParam, ctx: Context) -> dict[str, Any]:
@@ -585,12 +587,18 @@ async def get_tool(params: ToolIdParam, ctx: Context) -> dict[str, Any]:
 @mcp.tool()
 async def create_tool(params: ToolCreateParam, ctx: Context) -> dict[str, Any]:
     """Create a new custom tool with Python code."""
-    return await get_client().create_tool(params.id, params.name, params.content, api_key=get_user_token())
+    return await get_client().create_tool(
+        params.id, params.name, params.content, params.meta, api_key=get_user_token()
+    )
+
 
 @mcp.tool()
 async def update_tool(params: ToolUpdateParam, ctx: Context) -> dict[str, Any]:
-    """Update a tool's name or code."""
-    return await get_client().update_tool(params.tool_id, params.name, params.content, api_key=get_user_token())
+    """Update a tool's name, code, or metadata."""
+    return await get_client().update_tool(
+        params.tool_id, params.name, params.content, params.meta, api_key=get_user_token()
+    )
+
 
 @mcp.tool()
 async def delete_tool(params: ToolIdParam, ctx: Context) -> dict[str, Any]:
