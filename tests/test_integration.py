@@ -13,8 +13,8 @@ import httpx
 import pytest
 from fastmcp.client import Client
 
-MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", "http://localhost:8000/mcp")
-OPENWEBUI_URL = os.getenv("OPENWEBUI_URL", "http://localhost:8081")
+MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", "http://127.0.0.1:8000/mcp")
+WEBUI_URL = os.getenv("WEBUI_URL", "http://127.0.0.1:3000")
 
 # Read API key from file for integration tests
 _api_key = ""
@@ -22,18 +22,29 @@ try:
     with open(".openwebui-api-key") as f:
         _api_key = f.read().strip()
 except FileNotFoundError:
-    _api_key = os.getenv("OPENWEBUI_API_KEY", "")
-OPENWEBUI_API_KEY = _api_key
+    _api_key = os.getenv("WEBUI_API_KEY", "")
+WEBUI_API_KEY = _api_key
+
+
+class BearerAuth(httpx.Auth):
+    """HTTPX auth class that adds Bearer token to requests."""
+
+    def __init__(self, token: str):
+        self.token = token
+
+    def auth_flow(self, request):
+        request.headers["Authorization"] = f"Bearer {self.token}"
+        yield request
 
 
 async def get_openwebui_token():
-    if OPENWEBUI_API_KEY:
-        return OPENWEBUI_API_KEY
+    if WEBUI_API_KEY:
+        return WEBUI_API_KEY
     admin_email = os.getenv("WEBUI_ADMIN_EMAIL", "")
     admin_password = os.getenv("WEBUI_ADMIN_PASSWORD", "password")
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            f"{OPENWEBUI_URL}/api/v1/auths/signin",
+            f"{WEBUI_URL}/api/v1/auths/signin",
             json={"email": admin_email, "password": admin_password},
         )
         if response.status_code == 200:
@@ -48,7 +59,8 @@ async def auth_token():
 
 @pytest.fixture
 async def mcp_client():
-    async with Client(MCP_SERVER_URL) as client:
+    auth = BearerAuth(WEBUI_API_KEY) if WEBUI_API_KEY else None
+    async with Client(MCP_SERVER_URL, auth=auth) as client:
         yield client
 
 
@@ -57,7 +69,7 @@ class TestEndpointVerification:
     async def test_list_models_endpoint_returns_json(self, auth_token):
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                f"{OPENWEBUI_URL}/api/v1/models/list",
+                f"{WEBUI_URL}/api/v1/models/list",
                 headers={"Authorization": f"Bearer {auth_token}"} if auth_token else {},
             )
             assert response.status_code == 200
@@ -68,7 +80,7 @@ class TestEndpointVerification:
     async def test_get_config_endpoint_returns_json(self, auth_token):
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                f"{OPENWEBUI_URL}/api/v1/configs/export",
+                f"{WEBUI_URL}/api/v1/configs/export",
                 headers={"Authorization": f"Bearer {auth_token}"} if auth_token else {},
             )
             assert response.status_code == 200
@@ -79,7 +91,7 @@ class TestEndpointVerification:
     async def test_list_channels_returns_200(self, auth_token):
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                f"{OPENWEBUI_URL}/api/v1/channels/list",
+                f"{WEBUI_URL}/api/v1/channels/list",
                 headers={"Authorization": f"Bearer {auth_token}"} if auth_token else {},
             )
             assert response.status_code in [200, 403]
@@ -87,7 +99,7 @@ class TestEndpointVerification:
     async def test_list_channels_endpoint_handles_permissions(self, auth_token):
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                f"{OPENWEBUI_URL}/api/v1/channels/list",
+                f"{WEBUI_URL}/api/v1/channels/list",
                 headers={"Authorization": f"Bearer {auth_token}"} if auth_token else {},
             )
             assert response.status_code in [200, 403]

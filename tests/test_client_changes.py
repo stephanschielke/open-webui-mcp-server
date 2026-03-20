@@ -49,7 +49,7 @@ class MockAsyncClient:
 @pytest.fixture
 def client():
     """Create a test client with mocked environment."""
-    with patch.dict("os.environ", {"OPENWEBUI_URL": "https://test.example.com"}):
+    with patch.dict("os.environ", {"WEBUI_URL": "https://test.example.com"}):
         return OpenWebUIClient(api_key="test-token")
 
 
