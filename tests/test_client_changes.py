@@ -13,7 +13,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from openwebui_mcp.client import OpenWebUIClient  # noqa: E402
-from openwebui_mcp.main import (
+from openwebui_mcp.models import (
     ChannelCreateParam,
     ChannelIdParam,
     ChannelMessageIdParam,
