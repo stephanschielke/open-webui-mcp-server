@@ -77,9 +77,9 @@ export MCP_HTTP_PORT=8001
 openwebui-mcp
 ```
 
-2. Add as MCP server in Open WebUI:
-   - Go to **Admin Settings → External Tools**
-   - Add new MCP server with URL: `http://localhost:8001/mcp`
+1. Add as MCP server in Open WebUI:
+    - Go to **Admin Settings → External Tools**
+    - Add new MCP server with URL: `http://localhost:8001/mcp`
 
 ### Programmatic Usage
 
@@ -110,56 +110,56 @@ model = await client.create_model(
 ## Available Tools
 
 ### User Management
-| Tool | Description | Permission |
-|------|-------------|------------|
-| `get_current_user` | Get authenticated user's profile | Any |
-| `list_users` | List all users | Admin |
-| `get_user` | Get specific user details | Admin |
-| `update_user_role` | Change user role | Admin |
-| `delete_user` | Delete a user | Admin |
+| Tool               | Description                      | Permission |
+|--------------------|----------------------------------|------------|
+| `get_current_user` | Get authenticated user's profile | Any        |
+| `list_users`       | List all users                   | Admin      |
+| `get_user`         | Get specific user details        | Admin      |
+| `update_user_role` | Change user role                 | Admin      |
+| `delete_user`      | Delete a user                    | Admin      |
 
 ### Group Management
-| Tool | Description | Permission |
-|------|-------------|------------|
-| `list_groups` | List all groups | Any |
-| `create_group` | Create a new group | Admin |
-| `get_group` | Get group details | Any |
-| `update_group` | Update group name/description | Admin |
-| `add_user_to_group` | Add user to group | Admin |
-| `remove_user_from_group` | Remove user from group | Admin |
-| `delete_group` | Delete a group | Admin |
+| Tool                     | Description                   | Permission |
+|--------------------------|-------------------------------|------------|
+| `list_groups`            | List all groups               | Any        |
+| `create_group`           | Create a new group            | Admin      |
+| `get_group`              | Get group details             | Any        |
+| `update_group`           | Update group name/description | Admin      |
+| `add_user_to_group`      | Add user to group             | Admin      |
+| `remove_user_from_group` | Remove user from group        | Admin      |
+| `delete_group`           | Delete a group                | Admin      |
 
 ### Model Management
-| Tool | Description | Permission |
-|------|-------------|------------|
-| `list_models` | List all models | Any |
-| `get_model` | Get model configuration | Any |
-| `create_model` | Create custom model | Admin |
-| `update_model` | Update model settings | Admin |
-| `delete_model` | Delete a model | Admin |
+| Tool           | Description             | Permission |
+|----------------|-------------------------|------------|
+| `list_models`  | List all models         | Any        |
+| `get_model`    | Get model configuration | Any        |
+| `create_model` | Create custom model     | Admin      |
+| `update_model` | Update model settings   | Admin      |
+| `delete_model` | Delete a model          | Admin      |
 
 ### Knowledge Base Management
-| Tool | Description | Permission |
-|------|-------------|------------|
-| `list_knowledge_bases` | List knowledge bases | Any |
-| `get_knowledge_base` | Get knowledge base details | Any |
-| `create_knowledge_base` | Create knowledge base | Any |
-| `delete_knowledge_base` | Delete knowledge base | Owner |
+| Tool                    | Description                | Permission |
+|-------------------------|----------------------------|------------|
+| `list_knowledge_bases`  | List knowledge bases       | Any        |
+| `get_knowledge_base`    | Get knowledge base details | Any        |
+| `create_knowledge_base` | Create knowledge base      | Any        |
+| `delete_knowledge_base` | Delete knowledge base      | Owner      |
 
 ### Chat Management
-| Tool | Description | Permission |
-|------|-------------|------------|
-| `list_chats` | List user's chats | Own |
-| `get_chat` | Get chat messages | Own |
-| `delete_chat` | Delete a chat | Own |
-| `delete_all_chats` | Delete all chats | Own |
+| Tool               | Description       | Permission |
+|--------------------|-------------------|------------|
+| `list_chats`       | List user's chats | Own        |
+| `get_chat`         | Get chat messages | Own        |
+| `delete_chat`      | Delete a chat     | Own        |
+| `delete_all_chats` | Delete all chats  | Own        |
 
 ### System
-| Tool | Description | Permission |
-|------|-------------|------------|
-| `list_tools` | List available tools | Any |
-| `list_functions` | List functions/filters | Any |
-| `get_system_config` | Get system config | Admin |
+| Tool                | Description            | Permission |
+|---------------------|------------------------|------------|
+| `list_tools`        | List available tools   | Any        |
+| `list_functions`    | List functions/filters | Any        |
+| `get_system_config` | Get system config      | Admin      |
 
 ## Development
 
