@@ -56,6 +56,7 @@ services:
         UV_VERSION: ${UV_VERSION:-0.10.11}
     environment:
       OPENWEBUI_URL: http://open-webui:8080
+      OPENWEBUI_API_KEY: ${OPENWEBUI_API_KEY:-}
       # MCP server configuration
       MCP_TRANSPORT: ${MCP_TRANSPORT:-http}
       MCP_HTTP_HOST: ${MCP_HTTP_HOST:-0.0.0.0}
