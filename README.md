@@ -37,13 +37,13 @@ uv pip install openwebui-mcp-server
 Set the required environment variable:
 
 ```bash
-export OPENWEBUI_URL=https://your-openwebui-instance.com
+export WEBUI_URL=https://your-openwebui-instance.com
 ```
 
 Optionally, set a default API key (can be overridden per-request):
 
 ```bash
-export OPENWEBUI_API_KEY=your-api-key
+export WEBUI_API_KEY=your-api-key
 ```
 
 ## Usage
@@ -58,8 +58,8 @@ Add to your Claude Desktop config (`~/.config/claude/claude_desktop_config.json`
     "openwebui": {
       "command": "openwebui-mcp",
       "env": {
-        "OPENWEBUI_URL": "https://your-openwebui-instance.com",
-        "OPENWEBUI_API_KEY": "your-api-key"
+        "WEBUI_URL": "https://your-openwebui-instance.com",
+        "WEBUI_API_KEY": "your-api-key"
       }
     }
   }
@@ -71,7 +71,7 @@ Add to your Claude Desktop config (`~/.config/claude/claude_desktop_config.json`
 1. Start the server in HTTP mode:
 
 ```bash
-export OPENWEBUI_URL=https://your-openwebui-instance.com
+export WEBUI_URL=https://your-openwebui-instance.com
 export MCP_TRANSPORT=http
 export MCP_HTTP_PORT=8001
 openwebui-mcp
