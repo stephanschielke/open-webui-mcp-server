@@ -1,0 +1,65 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama-cpu
+    restart: always
+    volumes:
+      - ollama_vol:/root/.ollama
+    environment:
+      OLLAMA_HOST: "0.0.0.0:11434"
+  open-webui:
+    # docker logout ghcr.io || echo $GH_CLASSIC_TOKEN | docker login ghcr.io -u "$GITHUB_USERNAME" --password-stdin
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: always
+    ports:
+      - "127.0.0.1:8081:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      # Enable OpenApi Specs under http://127.0.0.1:8081/docs
+      ENV: "dev"
+      # Expose UI Server
+      HOST: "0.0.0.0"
+      PORT: "8080"
+      CORS_ALLOW_ORIGIN: "*"
+      # Config
+      ENABLE_SIGNUP: False
+      ENABLE_API_KEYS: "${ENABLE_API_KEYS:-True}"
+      USER_PERMISSIONS_FEATURES_API_KEYS: "${USER_PERMISSIONS_FEATURES_API_KEYS:-True}"
+      # Secrets
+      WEBUI_ADMIN_EMAIL: "${WEBUI_ADMIN_EMAIL:-admin@open-webui.local}"
+      WEBUI_ADMIN_PASSWORD: "${WEBUI_ADMIN_PASSWORD:-password}"
+      WEBUI_SECRET_KEY: "${OPEN_WEBUI_SECRET_KEY:-secret}"
+      # Connection to Ollama container
+      ENABLE_OLLAMA_API: "${ENABLE_OLLAMA_API:-True}"
+      OLLAMA_BASE_URL: "http://ollama:11434"
+      # Disable Trackers
+      SCARF_NO_ANALYTICS: True
+      DO_NOT_TRACK: True
+      ANONYMIZED_TELEMETRY: False
+    volumes:
+      - open_webui_vol:/app/backend/data
+  open-webui-mcp-server:
+    container_name: open-webui-mcp-server
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Build args
+        PYTHON_VERSION: "{PYTHON_VERSION:-3.10}"
+        UV_VERSION: "${UV_VERSION:-0.10.11}"
+        # MCP server configuration
+        MCP_TRANSPORT: "{MCP_TRANSPORT:-http}"
+        MCP_HTTP_HOST: "{MCP_HTTP_HOST:-0.0.0.0}"
+        MCP_HTTP_PORT: "{MCP_HTTP_PORT:-8000}"
+        MCP_HTTP_PATH: "{MCP_HTTP_PATH:-/mcp}"
+    environment:
+      OPENWEBUI_URL: http://open-webui:8080
+
+volumes:
+  ollama_vol:
+    external: false
+  open_webui_vol:
+    # docker volume rm open_webui_vol
+    external: false
