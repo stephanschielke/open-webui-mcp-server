@@ -1,0 +1,62 @@
+[settings]
+experimental = true
+unix_default_inline_shell_args = "zsh -c"
+
+[tools]
+uv = "latest"
+ruff = "latest"
+hadolint = "latest"
+jq = "latest"
+shfmt = "latest"
+
+[settings.python]
+uv_venv_auto = "create|source"
+uv_venv_create_args = ["--quiet", "--seed", "--allow-existing"]
+
+[env]
+MISE_ENV = "local"
+# MISE_VERBOSE = true
+# UV_MANAGED_PYTHON = true
+PYTHONPATH = "{{config_root}}"
+
+# Docker Compose Container Settings
+MCP_TRANSPORT = "http"
+MCP_HTTP_PORT = "8000" # exposed to host
+MCP_HTTP_HOST = "127.0.0.1" # host
+MCP_HTTP_PATH = "/mcp"
+WEBUI_PORT = "3000" # exposed to host
+MCP_SERVER_URL = "http://{{env.MCP_HTTP_HOST}}:{{env.MCP_HTTP_PORT}}{{env.MCP_HTTP_PATH}}"
+
+# Can't be configured beforehand. Helper script at scripts/init-api-key.sh
+# WEBUI_API_KEY = "mise run owu:api:init-key"
+# https://docs.openwebui.com/reference/env-configuration/#webui_url
+WEBUI_URL = "http://127.0.0.1:{{env.WEBUI_PORT}}"
+# https://docs.openwebui.com/reference/env-configuration/#webui_admin_email
+WEBUI_ADMIN_EMAIL = "admin@open-webui.local"
+# https://docs.openwebui.com/reference/env-configuration/#webui_admin_password
+WEBUI_ADMIN_PASSWORD = "password"
+
+[tasks.install-dev]
+run = """
+uv lock
+uv sync --extra="dev"
+uv pip install -e ".[dev]"
+"""
+
+[tasks]
+"owu:compose:build" = "docker compose --file {{config_root}}/compose.yaml build"
+"owu:compose:up" = "docker compose --file {{config_root}}/compose.yaml --project-name open-webui-mcp-server up --detach"
+
+"owu:docker:build" = "docker build --tag open-webui-mcp-server ."
+"owu:docker:run" = "docker run --detach open-webui-mcp-server"
+
+"owu:tests:unit" = "uv run pytest tests/test_client_changes.py tests/test_mcp_wrapper_logic.py -v"
+"owu:tests:integration" = "uv run pytest tests/test_integration.py -v -m integration"
+"owu:tests:wrapper-logic" = "uv run pytest tests/test_mcp_wrapper_logic.py -v"
+"owu:tests:all" = "uv run pytest tests/ -v"
+
+"owu:linter:check" = "ruff --config {{config_root}}/pyproject.toml check {{config_root}}/src/ {{config_root}}/tests/"
+"owu:linter:fix" = "ruff --config {{config_root}}/pyproject.toml check --fix {{config_root}}/src/ {{config_root}}/tests/"
+
+"owu:api:dump-spec" = "curl -sS {{env.WEBUI_URL}}/openapi.json | jq --sort-keys > {{config_root}}/specs/open-webui.openapi.json"
+"owu:api:init-key" = "bash {{config_root}}/scripts/init-api-key.sh"
