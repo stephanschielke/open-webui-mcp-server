@@ -21,7 +21,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "fastmcp>=2.14.5",
+    "fastmcp>=2.14.5", # Consider upgrading to 3.x.x (https://gofastmcp.com/getting-started/upgrading/from-fastmcp-2#upgrading-from-fastmcp-2)
     "httpx>=0.28.1",
     "pydantic>=2.12.5",
     "uvicorn>=0.42.0",
