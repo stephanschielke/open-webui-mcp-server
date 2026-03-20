@@ -8,12 +8,12 @@ set -euo pipefail
 #   ./scripts/init-api-key.sh
 #
 # Environment variables:
-#   OPENWEBUI_URL        - Open WebUI URL (default: http://localhost:8081)
+#   WEBUI_URL        - Open WebUI URL (default: http://localhost:3000)
 #   WEBUI_ADMIN_EMAIL    - Admin email (default: __VG_EMAIL_c614b20057b1__)
 #   WEBUI_ADMIN_PASSWORD - Admin password (default: password)
 #   API_KEY_OUTPUT_FILE  - Where to save the API key (default: .openwebui-api-key)
 
-OPENWEBUI_URL="${OPENWEBUI_URL:-http://localhost:8081}"
+WEBUI_URL="${WEBUI_URL:-http://localhost:3000}"
 WEBUI_ADMIN_EMAIL="${WEBUI_ADMIN_EMAIL:-__VG_EMAIL_c614b20057b1__}"
 WEBUI_ADMIN_PASSWORD="${WEBUI_ADMIN_PASSWORD:-password}"
 API_KEY_OUTPUT_FILE="${API_KEY_OUTPUT_FILE:-.openwebui-api-key}"
@@ -27,10 +27,10 @@ log_warn() { printf "\033[0;33m⚠\033[0m %s\n" "$@"; }
 
 # Wait for Open WebUI to be ready
 wait_for_openwebui() {
-  log_info "Waiting for Open WebUI at ${OPENWEBUI_URL}..."
+  log_info "Waiting for Open WebUI at ${WEBUI_URL}..."
   local retries=0
   while [ $retries -lt $MAX_RETRIES ]; do
-    if curl -s -o /dev/null -w "%{http_code}" "${OPENWEBUI_URL}/health" 2>/dev/null | grep -q "200\|404"; then
+    if curl -s -o /dev/null -w "%{http_code}" "${WEBUI_URL}/health" 2>/dev/null | grep -q "200\|404"; then
       log_success "Open WebUI is ready"
       return 0
     fi
@@ -46,7 +46,7 @@ wait_for_openwebui() {
 signin() {
   log_info "Signing in as ${WEBUI_ADMIN_EMAIL}..."
   local response
-  response=$(curl -s -c /tmp/owui-cookies.txt -X POST "${OPENWEBUI_URL}/api/v1/auths/signin" \
+  response=$(curl -s -c /tmp/owui-cookies.txt -X POST "${WEBUI_URL}/api/v1/auths/signin" \
     -H "Content-Type: application/json" \
     -d "{\"email\": \"${WEBUI_ADMIN_EMAIL}\", \"password\": \"${WEBUI_ADMIN_PASSWORD}\"}")
 
@@ -63,7 +63,7 @@ signin() {
 create_api_key() {
   log_info "Creating API key..."
   local response
-  response=$(curl -s -b /tmp/owui-cookies.txt -X POST "${OPENWEBUI_URL}/api/v1/auths/api_key")
+  response=$(curl -s -b /tmp/owui-cookies.txt -X POST "${WEBUI_URL}/api/v1/auths/api_key")
 
   local api_key
   api_key=$(echo "$response" | grep -o '"api_key":"[^"]*"' | cut -d'"' -f4)
@@ -111,7 +111,7 @@ main() {
 
   echo
   log_success "Done! API key saved to ${API_KEY_OUTPUT_FILE}"
-  log_info "To use: export OPENWEBUI_API_KEY=\$(cat ${API_KEY_OUTPUT_FILE})"
+  log_info "To use: export WEBUI_API_KEY=\$(cat ${API_KEY_OUTPUT_FILE})"
 }
 
 main "$@"
