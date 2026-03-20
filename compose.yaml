@@ -8,6 +8,8 @@ services:
     environment:
       OLLAMA_HOST: "0.0.0.0:11434"
   open-webui:
+    depends_on:
+      - ollama
     # docker logout ghcr.io || echo $GH_CLASSIC_TOKEN | docker login ghcr.io -u "$GITHUB_USERNAME" --password-stdin
     image: ghcr.io/open-webui/open-webui:main
     container_name: open-webui
@@ -41,7 +43,10 @@ services:
     volumes:
       - open_webui_vol:/app/backend/data
   open-webui-mcp-server:
+    depends_on:
+      - open-webui
     container_name: open-webui-mcp-server
+    restart: always
     build:
       context: .
       dockerfile: Dockerfile
@@ -56,6 +61,12 @@ services:
       MCP_HTTP_HOST: ${MCP_HTTP_HOST:-0.0.0.0}
       MCP_HTTP_PORT: ${MCP_HTTP_PORT:-8000}
       MCP_HTTP_PATH: ${MCP_HTTP_PATH:-/mcp}
+    expose:
+      - ${OPEN_WEB_MCP_CONTAINER_PORT:-8000}
+    ports:
+      - "127.0.0.1:${OPEN_WEB_MCP_CONTAINER_PORT:-8000}:${MCP_HTTP_PORT:-8000}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 volumes:
   ollama_vol:
