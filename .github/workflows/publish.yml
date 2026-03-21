@@ -15,8 +15,6 @@ on:
 
 env:
   ARTEFACT_NAME: python-package-distributions
-  #RUNS_ON: ubuntu-latest
-  RUNS_ON: '[ "self-hosted", "ubuntu-latest" ]' # ${{ fromJSON(env.RUNS_ON) }}
 
 defaults:
   run:
@@ -59,7 +57,7 @@ jobs:
     concurrency:
       group: ${{ github.sha }}
       cancel-in-progress: true
-    timeout-minutes: 2
+    timeout-minutes: 10
     continue-on-error: false
 
   publish-dev:
@@ -119,7 +117,7 @@ jobs:
     concurrency:
       group: ${{ github.sha }}
       cancel-in-progress: true
-    timeout-minutes: 3
+    timeout-minutes: 10
     continue-on-error: false
 
 
