@@ -163,12 +163,14 @@ jobs:
       - name: "Build with release version"
         run: mise run build
       - uses: qoomon/actions--context@e12e182be797e3476990faf801dd1b87f107f91c # v5.0.1
-      - name: "Publish to PyPI (OIDC)"
+      - name: "Publish to PyPI"
         if: ${{ !env.ACT }}
         uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
         with:
-          # Uses OpenID Connect (OIDC) trust relationship
-          # No username/password needed - PyPI validates the OIDC token
+          # Using account API token for first release
+          # After first release, configure trusted publisher and switch to OIDC
+          user: '__token__'
+          password: ${{ secrets.PYPI_ACCOUNT_API_TOKEN }}
           attestations: 'true'
           print-hash: 'true'
           verbose: 'true'
