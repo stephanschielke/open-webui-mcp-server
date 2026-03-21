@@ -1,0 +1,21 @@
+--workflows $PWD/.github//workflows/
+--artifact-server-path $PWD/.github/act-artifacts/
+--artifact-server-addr 10.136.229.19
+--artifact-server-port 34567
+--defaultbranch main
+--var PACKAGE_NAME=$PYPI_PACKAGE_NAME
+--secret GITHUB_TOKEN=$GITHUB_TOKEN
+--secret PYPI_API_TOKEN=$PYPI_API_TOKEN
+--secret TEST_PYPI_API_TOKEN=$TEST_PYPI_API_TOKEN
+--actor $GITHUB_REPOSITORY_SLUG
+--env GITHUB_WORKFLOW_REF=$GITHUB_REPOSITORY_SLUG/.github/workflows/publish.yml
+--env UV_LINK_MODE=copy
+--remote-name $GITHUB_REPOSITORY_REMOTE
+--strict
+--verbose
+--container-daemon-socket $DOCKER_HOST
+#--env ACTIONS_ID_TOKEN_REQUEST_URL=https://token.actions.githubusercontent.com
+#--detect-event
+#--validate
+#--bind
+#--watch
