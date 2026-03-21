@@ -57,3 +57,5 @@ Thumbs.db
 
 # Build Artifacts
 **/act-artifacts/**/*.zip
+/PRODUCTION_RELEASE_COMPLETE.md
+/PRODUCTION_WORKFLOW_COMPLETE.md
