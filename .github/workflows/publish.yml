@@ -8,11 +8,15 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-# vars required
-# PACKAGE_NAME: openwebui-mcp-server
+# Required vars
+# - PACKAGE_NAME: openwebui-mcp-server
+# - PROD_ENVIRONMENT_NAME: pypi
+# - TEST_ENVIRONMENT_NAME: test.pypi
 
 env:
-  REPOSITORY_URL: "https://test.pypi.org/p/${{ vars.PACKAGE_NAME }}/"
+  ARTEFACT_NAME: python-package-distributions
+  #RUNS_ON: ubuntu-latest
+  RUNS_ON: '[ "self-hosted", "ubuntu-latest" ]' # ${{ fromJSON(env.RUNS_ON) }}
 
 defaults:
   run:
@@ -21,7 +25,7 @@ defaults:
 jobs:
   build:
     name: Build distribution
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(vars.RUNS_ON) }}
     permissions:
       contents: read
       packages: write
@@ -35,13 +39,21 @@ jobs:
         run: uv pip install build
       - name: Build wheel and sdist
         run: mise run build
-      - name: Upload distributions
+      - name: Upload distributions (to act local mock artefactory)
+        if: ${{ env.ACT == true }}
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0 (for remote gh)
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2 (for local act)
         with:
-          name: python-package-distributions
+          name: ${{ env.ARTEFACT_NAME }}
+          path: dist/
+          retention-days: 1
+      - name: Upload distributions
+        if: ${{ !env.ACT }}
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0 (for remote gh)
+        with:
+          name: ${{ env.ARTEFACT_NAME }}
           path: dist/
           retention-days: 5
     concurrency:
@@ -52,18 +64,16 @@ jobs:
 
   publish-dev:
     name: "Publish dev release to Test PyPI"
-    #if: github.event_name == 'push' # && github.ref == 'refs/heads/main'
+    if: true # Alway build a dev version for every push/run
     needs:
       - "build"
-      # - "get-oidc-token"
-    runs-on: "ubuntu-latest"
-    #env:
-    # REPOSITORY_URL: "https://test.pypi.org/p/${{ vars.PACKAGE_NAME }}/"
-    # ACTIONS_ID_TOKEN_REQUEST_URL: "https://token.actions.githubusercontent.com"
-    # ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ needs.get-oidc-token.outputs.id_token }}
+    env:
+      REPOSITORY_URL: https://${{ vars.TEST_ENVIRONMENT_NAME }}.org/p/${{ vars.PACKAGE_NAME }}/
+      REPOSITORY_UPLOAD_URL: https://${{ vars.TEST_ENVIRONMENT_NAME }}.org/legacy/
     environment:
-      name: "pypi-dev"
+      name: ${{ vars.TEST_ENVIRONMENT_NAME }}
       url: ${{ env.REPOSITORY_URL }}
+    runs-on: ${{ fromJSON(vars.RUNS_ON) }}
     permissions:
       contents: read
       packages: write
@@ -82,18 +92,29 @@ jobs:
         run: uv pip install build
       - name: "Build with dev version"
         run: mise run build
+      - uses: qoomon/actions--context@e12e182be797e3476990faf801dd1b87f107f91c # v5.0.1
       - name: "Publish to Test PyPI"
+        if: ${{ !env.ACT }}
         uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
         with:
-          # repository-url: https://test.pypi.org/legacy/
-          repository-url: https://test.pypi.org/legacy/
-          user: '__token__'
-          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-          attestations: 'false'
-          packages-dir: 'dist'
+          # Uses OpenID Connect (OIDC) trust relationship
+          # user: null
+          # password: null
+          attestations: 'true'
+          repository-url: ${{ env.REPOSITORY_UPLOAD_URL }}
           print-hash: 'true'
           skip-existing: 'true'
-          verify-metadata: 'true'
+          verbose: 'true'
+      - name: "Publish to local Mock Artifactory"
+        if: ${{ env.ACT == true }}
+        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
+        with:
+          user: '__token__'
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          attestations: 'false'
+          repository-url: ${{ env.REPOSITORY_UPLOAD_URL }}
+          print-hash: 'true'
+          skip-existing: 'true'
           verbose: 'true'
     concurrency:
       group: ${{ github.sha }}

@@ -4,6 +4,7 @@
 --artifact-server-port 34567
 --defaultbranch main
 --var PACKAGE_NAME=$PYPI_PACKAGE_NAME
+--var RUNS_ON=[ "self-hosted", "ubuntu-latest" ]
 --secret GITHUB_TOKEN=$GITHUB_TOKEN
 --secret PYPI_API_TOKEN=$PYPI_API_TOKEN
 --secret TEST_PYPI_API_TOKEN=$TEST_PYPI_API_TOKEN
@@ -12,7 +13,7 @@
 --env UV_LINK_MODE=copy
 --remote-name $GITHUB_REPOSITORY_REMOTE
 --strict
---verbose
 --container-daemon-socket $DOCKER_HOST_SOCKET
+#--verbose
 #--validate
 #--watch
