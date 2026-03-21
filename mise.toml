@@ -158,3 +158,60 @@ run = """
 uv run python -m twine upload {{config_root}}/dist/*
 """
 
+[tasks."release:check"]
+description = "Run pre-release checks (tests, linter, build)"
+run = [
+  "echo 'Running pre-release checks...'",
+  "mise run owu:linter:check",
+  "mise run owu:tests:all",
+  "mise run build",
+  "echo 'All checks passed!'"
+]
+
+[tasks."release:tag"]
+description = "Create and push a release tag"
+usage = 'arg "<version>" help="Version to release (e.g., 0.2.0)"'
+run = """
+VERSION="${usage_version}"
+TAG="v${VERSION}"
+
+# Validate version format
+if ! echo "$VERSION" | grep -qE '^[0-9]+\\.[0-9]+\\.[0-9]+$'; then
+    echo "Error: Version must follow semantic versioning (MAJOR.MINOR.PATCH)"
+    exit 1
+fi
+
+# Check for uncommitted changes
+if ! git diff --quiet || ! git diff --cached --quiet; then
+    echo "Error: Uncommitted changes detected. Please commit or stash them first."
+    exit 1
+fi
+
+# Check if tag already exists
+if git tag | grep -q "^${TAG}$"; then
+    echo "Error: Tag ${TAG} already exists"
+    exit 1
+fi
+
+# Set version in pyproject.toml
+sed -i "s/^version = \\".*\\"/version = \\"${VERSION}\\"/" {{config_root}}/pyproject.toml
+echo "Set version to: ${VERSION}"
+
+# Create and push tag
+git add {{config_root}}/pyproject.toml
+git commit -m "chore: bump version to ${VERSION}"
+git tag -a "${TAG}" -m "Release ${TAG}"
+git push origin main "${TAG}"
+echo "Created and pushed tag: ${TAG}"
+"""
+
+[tasks."release:prepare"]
+description = "Prepare a release (run checks, bump version, create tag)"
+usage = 'arg "<version>" help="Version to release (e.g., 0.2.0)"'
+run = """
+mise run release:check
+mise run release:tag "${usage_version}"
+echo "Release preparation complete!"
+echo "Monitor the release at: https://github.com/stephanschielke/open-webui-mcp-server/actions"
+"""
+
