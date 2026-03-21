@@ -17,12 +17,16 @@ uv_venv_auto = "create|source"
 uv_venv_create_args = ["--quiet", "--seed", "--allow-existing"]
 
 [env]
-MISE_ENV = "local"
 # MISE_VERBOSE = true
 # UV_MANAGED_PYTHON = true
-UV_LINK_MODE = "copy"
 PYTHONPATH = "{{config_root}}"
-# DOCKER_HOST = "unix:///home/$USER/.docker/desktop/docker.sock"
+
+MISE_ENV = "fork" # TODO remove or rename to `local` once CI/CD and ownership is handed over
+GITHUB_REPOSITORY_REMOTE = { value = "origin" } # NOTE: Overwritten in mise.fork.toml
+GITHUB_REPOSITORY_OWNER = { value = "troylar" } # NOTE: Overwritten in mise.fork.toml
+GITHUB_REPOSITORY_NAME = "open-webui-mcp-server"
+GITHUB_REPOSITORY_SLUG = "{{env.GITHUB_REPOSITORY_OWNER}}/{{env.GITHUB_REPOSITORY_NAME}}"
+PYPI_PACKAGE_NAME = "openwebui-mcp-server"
 
 # Docker Compose Container Settings
 MCP_TRANSPORT = "http"
@@ -65,6 +69,13 @@ uv pip install -e ".[dev]"
 
 "owu:api:dump-spec" = "curl -sS {{env.WEBUI_URL}}/openapi.json | jq --sort-keys > {{config_root}}/specs/open-webui.openapi.json"
 "owu:api:init-key" = "bash {{config_root}}/scripts/init-api-key.sh"
+
+[tasks."owu:gha:act"]
+run = """
+if [[ -z "$DOCKER_HOST" ]]; then DOCKER_HOST=$(docker context inspect --format '{{ .Endpoints.docker.Host }}'); fi
+echo "Using $DOCKER_HOST to run act runner containers"
+
+"""
 
 # Package build & publish tasks
 [tasks.build]
@@ -146,3 +157,4 @@ shell = "bash -c"
 run = """
 uv run python -m twine upload {{config_root}}/dist/*
 """
+
