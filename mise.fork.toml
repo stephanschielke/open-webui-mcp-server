@@ -3,17 +3,17 @@ MISE_ENV = "fork"
 GITHUB_REPOSITORY_OWNER = "stephanschielke"
 GITHUB_REPOSITORY_NAME = "open-webui-mcp-server"
 GITHUB_REPOSITORY_REMOTE = "fork"
-DOCKER_HOST = "unix:///home/$USER/.docker/desktop/docker.sock"
+DOCKER_HOST_SOCKET = "unix:///home/$USER/.docker/desktop/docker.sock"
 
 [tasks."owu:gha:act:set-docker-host"]
 run = """MISE_TOML="mise.$MISE_ENV.toml"
-if [[ -z "$DOCKER_HOST" ]]; then
+if [[ -z "$DOCKER_HOST_SOCKET" ]]; then
   {% raw %}
-  DOCKER_HOST=$(docker context inspect --format '{{ .Endpoints.docker.Host }}')
+  DOCKER_HOST_SOCKET=$(docker context inspect --format '{{ .Endpoints.docker.Host }}')
   {% endraw %}
-  echo "Setting $DOCKER_HOST as DOCKER_HOST to the $MISE_TOML file"
+  echo "Setting $DOCKER_HOST_SOCKET as DOCKER_HOST_SOCKET to the $MISE_TOML file"
 else
-  echo "DOCKER_HOST already set to $DOCKER_HOST"
+  echo "DOCKER_HOST_SOCKET already set to $DOCKER_HOST_SOCKET"
 fi
-mise config set --file="$MISE_TOML" "env.DOCKER_HOST" "$DOCKER_HOST"
+mise config set --file="$MISE_TOML" "env.DOCKER_HOST_SOCKET" "$DOCKER_HOST_SOCKET"
 """
