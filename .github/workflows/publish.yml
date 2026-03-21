@@ -1,66 +1,135 @@
 name: Publish Python distribution to PyPI
 
 on:
-  workflow_dispatch:
   push:
     branches: [ main ]
     tags: [ "v*" ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+
+# vars required
+# PACKAGE_NAME: openwebui-mcp-server
+
+env:
+  REPOSITORY_URL: "https://test.pypi.org/p/${{ vars.PACKAGE_NAME }}/"
+
 defaults:
   run:
     shell: bash
 
 jobs:
+  get-oidc-token:
+    if: false
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    outputs:
+      id_token: ${{ steps.get_token.outputs.id_token }}
+    steps:
+      - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        id: get_token
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          script: |
+            const idToken = await core.getIDToken();
+            core.setOutput('id_token', idToken);
+      - name: print token
+        shell: bash
+        run: echo "Token ${{ steps.get_token.outputs.id_token }}"
+      - name: Printenv
+        shell: bash
+        run: printenv
+    concurrency:
+      group: ${{ github.sha }}
+      cancel-in-progress: true
+    timeout-minutes: 1
+    continue-on-error: false
+
   build:
     name: Build distribution
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - uses: actions/checkout@v6
-      - uses: jdx/mise-action@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: "false"
+          github-server-url: "https://github.com"
+      - uses: jdx/mise-action@c1ecc8f748cd28cdeabf76dab3cccde4ce692fe4 # v4.0.0
       - name: Install build dependencies
         run: uv pip install build
       - name: Build wheel and sdist
         run: mise run build
       - name: Upload distributions
-        uses: actions/upload-artifact@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0 (for remote gh)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2 (for local act)
         with:
           name: python-package-distributions
           path: dist/
           retention-days: 5
+    concurrency:
+      group: ${{ github.sha }}
+      cancel-in-progress: true
+    timeout-minutes: 2
+    continue-on-error: false
 
   publish-dev:
-    name: Publish dev release to PyPI
-    # if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: build
-    runs-on: ubuntu-latest
+    name: "Publish dev release to Test PyPI"
+    #if: github.event_name == 'push' # && github.ref == 'refs/heads/main'
+    needs:
+      - "build"
+      # - "get-oidc-token"
+    runs-on: "ubuntu-latest"
+    #env:
+    # REPOSITORY_URL: "https://test.pypi.org/p/${{ vars.PACKAGE_NAME }}/"
+    # ACTIONS_ID_TOKEN_REQUEST_URL: "https://token.actions.githubusercontent.com"
+    # ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ needs.get-oidc-token.outputs.id_token }}
     environment:
-      name: pypi-dev
-      url: https://test.pypi.org/p/openwebui-mcp-server
+      name: "pypi-dev"
+      url: ${{ env.REPOSITORY_URL }}
     permissions:
+      contents: read
+      packages: write
       id-token: write
     steps:
-      - uses: actions/checkout@v6
-      - uses: jdx/mise-action@v4
-      - name: Set dev version
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
+        with:
+          persist-credentials: "false"
+          github-server-url: "https://github.com"
+      - uses: jdx/mise-action@c1ecc8f748cd28cdeabf76dab3cccde4ce692fe4 # v4.0.0
+      - name: "Set dev version"
         run: mise run set:dev-version
         env:
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
-      - name: Install build dependencies
+      - name: "Install build dependencies"
         run: uv pip install build
-      - name: Build with dev version
+      - name: "Build with dev version"
         run: mise run build
-      - name: Publish to Test PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+      - name: "Publish to Test PyPI"
+        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
         with:
-          repository-url: https://test.pypi.org/p/openwebui-mcp-server
+          # repository-url: https://test.pypi.org/legacy/
+          repository-url: https://test.pypi.org/legacy/
           user: '__token__'
           password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          attestations: 'false'
           packages-dir: 'dist'
           print-hash: 'true'
           skip-existing: 'true'
           verify-metadata: 'true'
           verbose: 'true'
+    concurrency:
+      group: ${{ github.sha }}
+      cancel-in-progress: true
+    timeout-minutes: 3
+    continue-on-error: false
+
 
 #  publish-release:
 #    name: Publish release to PyPI
@@ -69,12 +138,14 @@ jobs:
 #    runs-on: ubuntu-latest
 #    environment:
 #      name: pypi-release
-#      url: https://pypi.org/p/openwebui-mcp-server
+#      url: https://pypi.org/p/${{ vars.PACKAGE_NAME }}/
 #    permissions:
 #      id-token: write
 #    steps:
-#      - uses: actions/checkout@v6
-#      - uses: jdx/mise-action@v4
+#      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
+#        with:
+#          persist-credentials: "false"
+#      - uses: jdx/mise-action@c1ecc8f748cd28cdeabf76dab3cccde4ce692fe4 # v4.0.0
 #      - name: Extract version from tag
 #        id: version
 #        run: |
@@ -88,6 +159,6 @@ jobs:
 #      - name: Build with release version
 #        run: mise run build
 #      - name: Publish to PyPI
-#        uses: pypa/gh-action-pypi-publish@release/v1
+#        uses: uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
 #        with:
 #          password: ${{ secrets.PYPI_API_TOKEN }}
