@@ -4,10 +4,10 @@ version = "0.2.0.dev1"
 description = "MCP server for managing Open WebUI - users, groups, models, knowledge bases, and more"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = { text = "MIT" }
 authors = [
-    {name = "Troy Larson", email = "troy@calvinware.com"},
-    {name = "Stephan Schielke", email = "steph.schie+open-webui-mcp-server@gmail.com"}
+    { name = "Stephan Schielke", email = "steph.schie+open-webui-mcp-server@gmail.com" },
+    { name = "Troy Larson", email = "troy@calvinware.com" }
 ]
 keywords = ["mcp", "open-webui", "ai", "llm", "admin"]
 classifiers = [
@@ -21,7 +21,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "fastmcp>=2.14.5", # Consider upgrading to 3.x.x (https://gofastmcp.com/getting-started/upgrading/from-fastmcp-2#upgrading-from-fastmcp-2)
+    "fastmcp>=2.14.5", # TODO Consider upgrading to 3.x.x (https://gofastmcp.com/getting-started/upgrading/from-fastmcp-2#upgrading-from-fastmcp-2)
     "httpx>=0.28.1",
     "pydantic>=2.12.5",
     "uvicorn>=0.42.0",
