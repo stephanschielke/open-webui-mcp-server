@@ -1,6 +1,7 @@
 [settings]
 experimental = true
 unix_default_inline_shell_args = "zsh -c"
+env_shell_expand = true
 
 [tools]
 uv = "latest"
@@ -73,7 +74,8 @@ uv pip install -e ".[dev]"
 "owu:api:init-key" = { run = "bash init-api-key.sh", dir = "{{config_root}}/scripts/" }
 
 "owu:gha:lint" = "ghalint run .github/workflows/publish.yml"
-"owu:gha:act" = { run = "cat .actrc && act", dir = "{{config_root}}" }
+"owu:gha:validate" = { run = "act --validate --verbose", dir = "{{config_root}}" }
+"owu:gha:act" = { run = ["cat .actrc", "act"], dir = "{{config_root}}" }
 
 # Package build & publish tasks
 [tasks.build]
