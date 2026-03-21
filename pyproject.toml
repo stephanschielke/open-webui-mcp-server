@@ -1,24 +1,54 @@
 [project]
 name = "openwebui-mcp-server"
 version = "0.2.0"
-description = "MCP server for managing Open WebUI - users, groups, models, knowledge bases, and more"
+description = "Model Context Protocol (MCP) server for Open WebUI - manage users, groups, models, knowledge bases, and more via AI assistants"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
+license-files = ["LICENSE"]
 authors = [
-    { name = "Stephan Schielke", email = "steph.schie+open-webui-mcp-server@gmail.com" },
-    { name = "Troy Larson", email = "troy@calvinware.com" }
+    { name = "Troy Larson", email = "troy@calvinware.com" },
 ]
-keywords = ["mcp", "open-webui", "ai", "llm", "admin"]
+maintainers = [
+    { name = "Stephan Schielke", email = "steph.schie+open-webui-mcp-server@gmail.com" }
+]
+keywords = [
+    "mcp",
+    "model-context-protocol",
+    "open-webui",
+    "openwebui",
+    "admin",
+    "management",
+    "ai",
+    "llm",
+    "fastmcp"
+]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Environment :: Web Environment",
+    "Framework :: FastAPI",
+    "Operating System :: OS Independent",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
 ]
+urls = { }
+Homepage = "https://github.com/troylar/open-webui-mcp-server"
+Repository = "https://github.com/troylar/open-webui-mcp-server"
+"Bug Tracker" = "https://github.com/troylar/open-webui-mcp-server"
+# TODO move to troylar on CI/CD and fork handover
+Documentation = "https://github.com/stephanschielke/open-webui-mcp-server#readme"
+Changelog = "https://github.com/stephanschielke/open-webui-mcp-server/releases"
+PyPI = "https://pypi.org/project/openwebui-mcp-server/"
+
 
 dependencies = [
     "fastmcp>=2.14.5", # TODO Consider upgrading to 3.x.x (https://gofastmcp.com/getting-started/upgrading/from-fastmcp-2#upgrading-from-fastmcp-2)
