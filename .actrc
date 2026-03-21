@@ -13,9 +13,6 @@
 --remote-name $GITHUB_REPOSITORY_REMOTE
 --strict
 --verbose
---container-daemon-socket $DOCKER_HOST
-#--env ACTIONS_ID_TOKEN_REQUEST_URL=https://token.actions.githubusercontent.com
-#--detect-event
+--container-daemon-socket $DOCKER_HOST_SOCKET
 #--validate
-#--bind
 #--watch
