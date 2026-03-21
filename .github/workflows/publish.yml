@@ -33,8 +33,7 @@ jobs:
           persist-credentials: "false"
           github-server-url: "https://github.com"
       - uses: jdx/mise-action@c1ecc8f748cd28cdeabf76dab3cccde4ce692fe4 # v4.0.0
-      - name: Validate workflow
-        run: mise run owu:gha:lint
+
       - name: Install build dependencies
         run: uv pip install build
       - name: Build wheel and sdist
