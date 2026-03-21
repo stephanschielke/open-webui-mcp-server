@@ -70,13 +70,10 @@ uv pip install -e ".[dev]"
 "owu:linter:fix" = "ruff --config {{config_root}}/pyproject.toml check --fix {{config_root}}/src/ {{config_root}}/tests/"
 
 "owu:api:dump-spec" = "curl -sS {{env.WEBUI_URL}}/openapi.json | jq --sort-keys > {{config_root}}/specs/open-webui.openapi.json"
-"owu:api:init-key" = "bash {{config_root}}/scripts/init-api-key.sh"
+"owu:api:init-key" = { run = "bash init-api-key.sh", dir = "{{config_root}}/scripts/" }
 
-[tasks."owu:gha:act"]
-run = """
-if [[ -z "$DOCKER_HOST" ]]; then DOCKER_HOST=$(docker context inspect --format '{{ .Endpoints.docker.Host }}'); fi
-echo "Using $DOCKER_HOST to run act runner containers"
-"""
+"owu:gha:lint" = "ghalint run .github/workflows/publish.yml"
+"owu:gha:act" = { run = "cat .actrc && act", dir = "{{config_root}}" }
 
 # Package build & publish tasks
 [tasks.build]
