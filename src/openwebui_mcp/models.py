@@ -88,11 +88,15 @@ class PromptCreateParam(BaseModel):
 
 
 class PromptIdParam(BaseModel):
+    prompt_id: str = Field(description="Prompt ID")
+
+
+class PromptCommandParam(BaseModel):
     command: str = Field(description="Command (without leading slash)")
 
 
 class PromptUpdateParam(BaseModel):
-    command: str = Field(description="Command (without leading slash)")
+    prompt_id: str = Field(description="Prompt ID")
     title: Optional[str] = Field(default=None, description="New title")
     content: Optional[str] = Field(default=None, description="New content")
 

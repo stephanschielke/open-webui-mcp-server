@@ -189,7 +189,7 @@ class OpenWebUIClient:
 
     async def get_model(self, model_id: str, api_key: Optional[str] = None) -> dict:
         """Get a specific model."""
-        return await self.get(f"/api/v1/models/{model_id}", api_key)
+        return await self.get(f"/api/v1/models/model?id={model_id}", api_key)
 
     # noinspection PyShadowingBuiltins
     async def create_model(
@@ -338,7 +338,7 @@ class OpenWebUIClient:
         return await self.post(
             "/api/v1/prompts/create",
             api_key,
-            json={"command": command, "title": title, "content": content},
+            json={"command": command, "content": content},
         )
 
     async def get_prompt(self, command: str, api_key: Optional[str] = None) -> dict:
@@ -347,22 +347,22 @@ class OpenWebUIClient:
 
     async def update_prompt(
         self,
-        command: str,
+        prompt_id: str,
         title: Optional[str] = None,
         content: Optional[str] = None,
         api_key: Optional[str] = None,
     ) -> dict:
         """Update a prompt template."""
-        data = {"command": f"/{command}"}
+        data = {}
         if title is not None:
             data["title"] = title
         if content is not None:
             data["content"] = content
-        return await self.post(f"/api/v1/prompts/command/{command}/update", api_key, json=data)
+        return await self.post(f"/api/v1/prompts/id/{prompt_id}/update", api_key, json=data)
 
-    async def delete_prompt(self, command: str, api_key: Optional[str] = None) -> dict:
+    async def delete_prompt(self, prompt_id: str, api_key: Optional[str] = None) -> dict:
         """Delete a prompt template."""
-        return await self.delete(f"/api/v1/prompts/command/{command}/delete", api_key)
+        return await self.delete(f"/api/v1/prompts/id/{prompt_id}/delete", api_key)
 
     # ==========================================================================
     # Memory Management
@@ -422,7 +422,7 @@ class OpenWebUIClient:
 
     async def archive_chat(self, chat_id: str, api_key: Optional[str] = None) -> dict:
         """Archive a chat."""
-        return await self.get(f"/api/v1/chats/{chat_id}/archive", api_key)
+        return await self.post(f"/api/v1/chats/{chat_id}/archive", api_key)
 
     async def share_chat(self, chat_id: str, api_key: Optional[str] = None) -> dict:
         """Share a chat (make public)."""
@@ -430,7 +430,7 @@ class OpenWebUIClient:
 
     async def clone_chat(self, chat_id: str, api_key: Optional[str] = None) -> dict:
         """Clone a shared chat."""
-        return await self.get(f"/api/v1/chats/{chat_id}/clone", api_key)
+        return await self.post(f"/api/v1/chats/{chat_id}/clone/shared", api_key)
 
     # ==========================================================================
     # Folder Management
@@ -442,7 +442,7 @@ class OpenWebUIClient:
 
     async def create_folder(self, name: str, api_key: Optional[str] = None) -> dict:
         """Create a new folder."""
-        return await self.post("/api/v1/folders/create", api_key, json={"name": name})
+        return await self.post("/api/v1/folders/", api_key, json={"name": name})
 
     async def get_folder(self, folder_id: str, api_key: Optional[str] = None) -> dict:
         """Get a specific folder."""
@@ -478,7 +478,11 @@ class OpenWebUIClient:
         api_key: Optional[str] = None,
     ) -> dict:
         """Create a new tool."""
-        payload = {"id": id, "name": name, "content": content, "meta": meta or {}}
+        tool_meta = {
+            "description": (meta or {}).get("description"),
+            "manifest": (meta or {}).get("manifest"),
+        }
+        payload = {"id": id, "name": name, "content": content, "meta": tool_meta}
         return await self.post("/api/v1/tools/create", api_key, json=payload)
 
     async def update_tool(

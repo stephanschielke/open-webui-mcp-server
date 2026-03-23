@@ -38,6 +38,7 @@ from openwebui_mcp.models import (
     NoteCreateParam,
     NoteIdParam,
     NoteUpdateParam,
+    PromptCommandParam,
     PromptCreateParam,
     PromptIdParam,
     PromptUpdateParam,
@@ -315,7 +316,7 @@ async def create_prompt(params: PromptCreateParam) -> dict[str, Any]:
 
 
 @mcp.tool()
-async def get_prompt(params: PromptIdParam) -> dict[str, Any]:
+async def get_prompt(params: PromptCommandParam) -> dict[str, Any]:
     """Get a prompt template by its command."""
     return await get_client().get_prompt(params.command, get_user_token())
 
@@ -324,14 +325,14 @@ async def get_prompt(params: PromptIdParam) -> dict[str, Any]:
 async def update_prompt(params: PromptUpdateParam) -> dict[str, Any]:
     """Update a prompt template."""
     return await get_client().update_prompt(
-        params.command, params.title, params.content, get_user_token()
+        params.prompt_id, params.title, params.content, get_user_token()
     )
 
 
 @mcp.tool()
 async def delete_prompt(params: PromptIdParam) -> dict[str, Any]:
     """Delete a prompt template."""
-    return await get_client().delete_prompt(params.command, get_user_token())
+    return await get_client().delete_prompt(params.prompt_id, get_user_token())
 
 
 # =============================================================================
@@ -645,9 +646,12 @@ async def delete_channel(params: ChannelIdParam) -> dict[str, Any]:
 @mcp.tool()
 async def get_channel_messages(params: ChannelMessagesParam) -> dict[str, Any]:
     """Get messages from a channel with pagination."""
-    return await get_client().get_channel_messages(
+    result = await get_client().get_channel_messages(
         params.channel_id, params.skip, params.limit, get_user_token()
     )
+    if isinstance(result, list):
+        return {"items": result}
+    return result
 
 
 @mcp.tool()
@@ -661,9 +665,12 @@ async def post_channel_message(params: ChannelMessageParam) -> dict[str, Any]:
 @mcp.tool()
 async def delete_channel_message(params: ChannelMessageIdParam) -> dict[str, Any]:
     """Delete a message from a channel."""
-    return await get_client().delete_channel_message(
+    result = await get_client().delete_channel_message(
         params.channel_id, params.message_id, get_user_token()
     )
+    if isinstance(result, bool):
+        return {"success": result}
+    return result
 
 
 # =============================================================================
