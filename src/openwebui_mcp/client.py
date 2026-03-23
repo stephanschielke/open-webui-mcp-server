@@ -478,10 +478,13 @@ class OpenWebUIClient:
         api_key: Optional[str] = None,
     ) -> dict:
         """Create a new tool."""
-        tool_meta = {
-            "description": (meta or {}).get("description"),
-            "manifest": (meta or {}).get("manifest"),
-        }
+        # ToolMeta only accepts description and manifest fields
+        tool_meta = {}
+        if meta:
+            if "description" in meta:
+                tool_meta["description"] = meta["description"]
+            if "manifest" in meta:
+                tool_meta["manifest"] = meta["manifest"]
         payload = {"id": id, "name": name, "content": content, "meta": tool_meta}
         return await self.post("/api/v1/tools/create", api_key, json=payload)
 
