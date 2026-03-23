@@ -148,11 +148,7 @@ class OpenWebUIClient:
         api_key: Optional[str] = None,
     ) -> dict:
         """Update a group (admin only)."""
-        data = {}
-        if name is not None:
-            data["name"] = name
-        if description is not None:
-            data["description"] = description
+        data = {"name": name or "", "description": description or ""}
         return await self.post(f"/api/v1/groups/id/{group_id}/update", api_key, json=data)
 
     async def add_user_to_group(
@@ -177,7 +173,7 @@ class OpenWebUIClient:
 
     async def delete_group(self, group_id: str, api_key: Optional[str] = None) -> dict:
         """Delete a group (admin only)."""
-        return await self.delete(f"/api/v1/groups/id/{group_id}", api_key)
+        return await self.delete(f"/api/v1/groups/id/{group_id}/delete", api_key)
 
     # ==========================================================================
     # Model Management
@@ -270,16 +266,19 @@ class OpenWebUIClient:
         api_key: Optional[str] = None,
     ) -> dict:
         """Update a knowledge base."""
-        data = {}
-        if name is not None:
-            data["name"] = name
-        if description is not None:
-            data["description"] = description
+        data = {"name": name or "", "description": description or ""}
         return await self.post(f"/api/v1/knowledge/{knowledge_id}/update", api_key, json=data)
 
     async def delete_knowledge(self, knowledge_id: str, api_key: Optional[str] = None) -> dict:
         """Delete a knowledge base."""
-        return await self.delete(f"/api/v1/knowledge/{knowledge_id}", api_key)
+        return await self.delete(f"/api/v1/knowledge/{knowledge_id}/delete", api_key)
+
+    # Aliases for consistent naming with MCP tools
+    list_knowledge_bases = list_knowledge
+    get_knowledge_base = get_knowledge
+    create_knowledge_base = create_knowledge
+    update_knowledge_base = update_knowledge
+    delete_knowledge_base = delete_knowledge
 
     # ==========================================================================
     # File Management
@@ -330,7 +329,7 @@ class OpenWebUIClient:
     async def create_prompt(
         self,
         command: str,
-        title: str,
+        name: str,
         content: str,
         api_key: Optional[str] = None,
     ) -> dict:
@@ -338,7 +337,7 @@ class OpenWebUIClient:
         return await self.post(
             "/api/v1/prompts/create",
             api_key,
-            json={"command": command, "content": content},
+            json={"command": command, "name": name, "content": content},
         )
 
     async def get_prompt(self, command: str, api_key: Optional[str] = None) -> dict:
@@ -348,16 +347,19 @@ class OpenWebUIClient:
     async def update_prompt(
         self,
         prompt_id: str,
-        title: Optional[str] = None,
+        name: Optional[str] = None,
         content: Optional[str] = None,
+        command: Optional[str] = None,
         api_key: Optional[str] = None,
     ) -> dict:
         """Update a prompt template."""
         data = {}
-        if title is not None:
-            data["title"] = title
+        if name is not None:
+            data["name"] = name
         if content is not None:
             data["content"] = content
+        if command is not None:
+            data["command"] = command
         return await self.post(f"/api/v1/prompts/id/{prompt_id}/update", api_key, json=data)
 
     async def delete_prompt(self, prompt_id: str, api_key: Optional[str] = None) -> dict:
@@ -570,6 +572,9 @@ class OpenWebUIClient:
         """Get system configuration (admin only)."""
         return await self.get("/api/v1/configs/export", api_key)
 
+    # Alias for consistent naming with MCP tools
+    get_system_config = get_config
+
     async def export_config(self, api_key: Optional[str] = None) -> dict:
         """Export full configuration (admin only)."""
         return await self.get("/api/v1/configs/export", api_key)
@@ -654,6 +659,12 @@ class OpenWebUIClient:
             data["title"] = title
         if content is not None:
             data["content"] = content
+
+        # If only content is provided, fetch current note to get required title
+        if "title" not in data and "content" in data:
+            current = await self.get(f"/api/v1/notes/{note_id}", api_key)
+            data["title"] = current.get("title", "")
+
         return await self.post(f"/api/v1/notes/{note_id}/update", api_key, json=data)
 
     async def delete_note(self, note_id: str, api_key: Optional[str] = None) -> dict:
