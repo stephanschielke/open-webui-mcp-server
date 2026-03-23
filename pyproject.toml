@@ -1,6 +1,6 @@
 [project]
 name = "openwebui-mcp-server"
-version = "0.2.0"
+version = "0.2.1.dev1"
 description = "Model Context Protocol (MCP) server for Open WebUI - manage users, groups, models, knowledge bases, and more via AI assistants"
 readme = "README.md"
 requires-python = ">=3.10"
