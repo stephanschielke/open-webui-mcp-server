@@ -12,6 +12,7 @@ shfmt = "latest"
 ghalint = "latest"
 github-cli = "latest"
 act = "latest"
+node = "24" # https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
 
 [settings.python]
 uv_venv_auto = "create|source"
@@ -60,7 +61,8 @@ uv pip install -e ".[dev]"
 "owu:compose:up" = "docker compose --file {{config_root}}/compose.yaml --project-name open-webui-mcp-server up --detach"
 
 "owu:docker:build" = "docker build --tag open-webui-mcp-server ."
-"owu:docker:run" = "docker run --detach open-webui-mcp-server"
+"owu:docker:run" = "docker run open-webui-mcp-server"
+"owu:docker:run-detached" = "docker run --detach open-webui-mcp-server"
 
 "owu:tests:unit" = "uv run pytest tests/test_client_changes.py tests/test_mcp_wrapper_logic.py -v"
 "owu:tests:integration" = "uv run pytest tests/test_integration.py -v -m integration"

@@ -29,6 +29,13 @@ services:
       ENABLE_SIGNUP: False
       ENABLE_API_KEYS: "${ENABLE_API_KEYS:-True}"
       USER_PERMISSIONS_FEATURES_API_KEYS: "${USER_PERMISSIONS_FEATURES_API_KEYS:-True}"
+      ENABLE_OPENAI_API: True
+      ENABLE_CHANNELS: True
+      ENABLE_FOLDERS: True
+      ENABLE_NOTES: True
+      ENABLE_MEMORIES: True
+      ENABLE_WEB_SEARCH: True
+      ENABLE_ADMIN_EXPORT: True
       # Secrets
       WEBUI_ADMIN_EMAIL: "${WEBUI_ADMIN_EMAIL:-admin@open-webui.local}"
       WEBUI_ADMIN_PASSWORD: "${WEBUI_ADMIN_PASSWORD:-password}"
@@ -36,6 +43,7 @@ services:
       # Connection to Ollama container
       ENABLE_OLLAMA_API: "${ENABLE_OLLAMA_API:-True}"
       OLLAMA_BASE_URL: "http://ollama:11434"
+      ENABLE_DIRECT_CONNECTIONS: True
       # Disable Trackers
       SCARF_NO_ANALYTICS: True
       DO_NOT_TRACK: True

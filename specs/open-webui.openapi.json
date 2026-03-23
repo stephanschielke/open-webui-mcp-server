@@ -29632,7 +29632,7 @@
     "/api/v1/terminals/{server_id}/{path}": {
       "delete": {
         "description": "Proxy a request to the admin terminal server identified by *server_id*.",
-        "operationId": "proxy_terminal_api_v1_terminals__server_id___path__get",
+        "operationId": "proxy_terminal_api_v1_terminals__server_id___path__post",
         "parameters": [
           {
             "in": "path",
@@ -29685,7 +29685,7 @@
       },
       "get": {
         "description": "Proxy a request to the admin terminal server identified by *server_id*.",
-        "operationId": "proxy_terminal_api_v1_terminals__server_id___path__get",
+        "operationId": "proxy_terminal_api_v1_terminals__server_id___path__post",
         "parameters": [
           {
             "in": "path",
@@ -29738,7 +29738,7 @@
       },
       "head": {
         "description": "Proxy a request to the admin terminal server identified by *server_id*.",
-        "operationId": "proxy_terminal_api_v1_terminals__server_id___path__get",
+        "operationId": "proxy_terminal_api_v1_terminals__server_id___path__post",
         "parameters": [
           {
             "in": "path",
@@ -29791,7 +29791,7 @@
       },
       "options": {
         "description": "Proxy a request to the admin terminal server identified by *server_id*.",
-        "operationId": "proxy_terminal_api_v1_terminals__server_id___path__get",
+        "operationId": "proxy_terminal_api_v1_terminals__server_id___path__post",
         "parameters": [
           {
             "in": "path",
@@ -29844,7 +29844,7 @@
       },
       "patch": {
         "description": "Proxy a request to the admin terminal server identified by *server_id*.",
-        "operationId": "proxy_terminal_api_v1_terminals__server_id___path__get",
+        "operationId": "proxy_terminal_api_v1_terminals__server_id___path__post",
         "parameters": [
           {
             "in": "path",
@@ -29897,7 +29897,7 @@
       },
       "post": {
         "description": "Proxy a request to the admin terminal server identified by *server_id*.",
-        "operationId": "proxy_terminal_api_v1_terminals__server_id___path__get",
+        "operationId": "proxy_terminal_api_v1_terminals__server_id___path__post",
         "parameters": [
           {
             "in": "path",
@@ -29950,7 +29950,7 @@
       },
       "put": {
         "description": "Proxy a request to the admin terminal server identified by *server_id*.",
-        "operationId": "proxy_terminal_api_v1_terminals__server_id___path__get",
+        "operationId": "proxy_terminal_api_v1_terminals__server_id___path__post",
         "parameters": [
           {
             "in": "path",
@@ -34976,7 +34976,7 @@
     "/openai/{path}": {
       "delete": {
         "description": "Deprecated: proxy all requests to OpenAI API",
-        "operationId": "proxy_openai__path__get",
+        "operationId": "proxy_openai__path__post",
         "parameters": [
           {
             "in": "path",
@@ -35020,7 +35020,7 @@
       },
       "get": {
         "description": "Deprecated: proxy all requests to OpenAI API",
-        "operationId": "proxy_openai__path__get",
+        "operationId": "proxy_openai__path__post",
         "parameters": [
           {
             "in": "path",
@@ -35064,7 +35064,7 @@
       },
       "post": {
         "description": "Deprecated: proxy all requests to OpenAI API",
-        "operationId": "proxy_openai__path__get",
+        "operationId": "proxy_openai__path__post",
         "parameters": [
           {
             "in": "path",
@@ -35108,7 +35108,7 @@
       },
       "put": {
         "description": "Deprecated: proxy all requests to OpenAI API",
-        "operationId": "proxy_openai__path__get",
+        "operationId": "proxy_openai__path__post",
         "parameters": [
           {
             "in": "path",

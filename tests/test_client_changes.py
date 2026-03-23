@@ -147,8 +147,9 @@ async def test_create_tool_with_meta(client, mock_response):
         call_args = mock_client.request.call_args
         json_data = call_args.kwargs["json"]
 
-        # Should include meta
-        assert json_data["meta"] == meta_data
+        # ToolMeta only accepts description and manifest fields
+        # Other fields like "author" are filtered out
+        assert json_data["meta"] == {"description": "Test tool"}
         assert json_data["id"] == "test-tool"
         assert json_data["name"] == "Test Tool"
 
