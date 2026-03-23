@@ -337,16 +337,20 @@ async def test_update_note_title_only(client, mock_response):
 
 @pytest.mark.asyncio
 async def test_update_note_content_only(client, mock_response):
-    """Test update_note with only content."""
+    """Test update_note with only content - fetches current title from API."""
     with patch("httpx.AsyncClient") as mock_client_class:
         mock_client = MockAsyncClient(mock_response)
         mock_client_class.return_value = mock_client
 
         await client.update_note(note_id="note-123", content="New Content")
 
-        call_args = mock_client.request.call_args
-        assert call_args.kwargs["json"] == {"content": "New Content"}
-        assert "title" not in call_args.kwargs["json"]
+        calls = mock_client.request.call_args_list
+        assert len(calls) == 2
+        get_call = calls[0]
+        assert get_call[0][0] == "GET"
+        post_call = calls[1]
+        assert post_call[0][0] == "POST"
+        assert post_call.kwargs["json"] == {"content": "New Content", "title": ""}
 
 
 @pytest.mark.asyncio
