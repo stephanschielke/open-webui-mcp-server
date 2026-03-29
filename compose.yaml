@@ -1,19 +1,9 @@
 services:
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama-cpu
-    restart: always
-    volumes:
-      - ollama_vol:/root/.ollama
-    environment:
-      OLLAMA_HOST: "0.0.0.0:11434"
   open-webui:
-    depends_on:
-      - ollama
     # docker logout ghcr.io || echo $GH_CLASSIC_TOKEN | docker login ghcr.io -u "$GITHUB_USERNAME" --password-stdin
-    image: ghcr.io/open-webui/open-webui:main
+    image: ghcr.io/open-webui/open-webui:0.8.12-ollama
     container_name: open-webui
-    restart: always
+    restart: unless-stopped
     ports:
       - "127.0.0.1:${WEBUI_PORT:-3000}:2999"
     extra_hosts:
@@ -42,7 +32,8 @@ services:
       WEBUI_SECRET_KEY: "${OPEN_WEBUI_SECRET_KEY:-secret}"
       # Connection to Ollama container
       ENABLE_OLLAMA_API: "${ENABLE_OLLAMA_API:-True}"
-      OLLAMA_BASE_URL: "http://ollama:11434"
+      # OLLAMA_BASE_URL: "http://ollama:11434"
+      OLLAMA_BASE_URL: "http://127.0.0.1:11434"
       ENABLE_DIRECT_CONNECTIONS: True
       # Disable Trackers
       SCARF_NO_ANALYTICS: True
@@ -54,7 +45,7 @@ services:
     depends_on:
       - open-webui
     container_name: open-webui-mcp-server
-    restart: always
+    restart: unless-stopped
     build:
       context: .
       dockerfile: Dockerfile
