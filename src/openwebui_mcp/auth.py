@@ -14,6 +14,10 @@ def get_user_token() -> Optional[str]:
     return os.getenv("WEBUI_API_KEY")
 
 
+def set_user_token(token: str | None) -> None:
+    _current_user_token.set(token)
+
+
 class AuthMiddleware:
     """ASGI middleware to extract Authorization header and set context variable."""
 
