@@ -1,6 +1,6 @@
 [project]
 name = "openwebui-mcp-server"
-version = "0.2.1.dev1"
+version = "0.2.2"
 description = "Model Context Protocol (MCP) server for Open WebUI - manage users, groups, models, knowledge bases, and more via AI assistants"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -51,7 +51,7 @@ PyPI = "https://pypi.org/project/openwebui-mcp-server/"
 
 
 dependencies = [
-    "fastmcp>=2.14.5", # TODO Consider upgrading to 3.x.x (https://gofastmcp.com/getting-started/upgrading/from-fastmcp-2#upgrading-from-fastmcp-2)
+    "fastmcp>=3.0.0,<4",
     "httpx>=0.28.1",
     "pydantic>=2.12.5",
     "uvicorn>=0.42.0",
@@ -73,6 +73,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/openwebui_mcp"]
+include = ["src/openwebui_mcp/specs/*.json"]
 
 [tool.ruff]
 line-length = 100
