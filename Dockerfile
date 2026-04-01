@@ -8,7 +8,7 @@ RUN pip install --no-cache-dir uv
 
 # Copy project files
 COPY pyproject.toml uv.lock README.md ./
-COPY specs/ ./specs/
+COPY src/openwebui_mcp/specs/ ./src/openwebui_mcp/specs/
 
 # Install dependencies
 RUN uv --python-preference=only-system sync --locked --no-install-project
@@ -16,8 +16,12 @@ RUN uv --python-preference=only-system sync --locked --no-install-project
 # Copy application code
 COPY src/ ./src/
 
+# Install the project itself
+RUN uv --python-preference=only-system sync --locked
+
 # Environment variables
 ENV PYTHONUNBUFFERED=1
+ENV PATH="/app/.venv/bin:$PATH"
 ENV MCP_TRANSPORT="http"
 ENV MCP_HTTP_HOST="0.0.0.0"
 ENV MCP_HTTP_PORT=7999
@@ -27,4 +31,4 @@ ENV MCP_HTTP_PATH="/mcp"
 EXPOSE ${MCP_HTTP_PORT}
 
 # Run the MCP server
-CMD ["uv", "run", "openwebui-mcp"]
+CMD ["openwebui-mcp"]
