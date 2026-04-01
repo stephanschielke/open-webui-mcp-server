@@ -3,12 +3,12 @@ FROM python:${PYTHON_VERSION}-slim
 
 WORKDIR /app
 
-# Install uv for faster package installation
-ARG UV_VERSION="0.10.12"
-RUN pip install --no-cache-dir uv=="${UV_VERSION}"
+# Install uv
+RUN pip install --no-cache-dir uv
 
-# Copy pyproject.toml for dependency installation
-COPY pyproject.toml uv.lock README.md  ./
+# Copy project files
+COPY pyproject.toml uv.lock README.md ./
+COPY specs/ ./specs/
 
 # Install dependencies
 RUN uv --python-preference=only-system sync --locked --no-install-project
@@ -27,4 +27,4 @@ ENV MCP_HTTP_PATH="/mcp"
 EXPOSE ${MCP_HTTP_PORT}
 
 # Run the MCP server
-CMD ["uv", "run", "python", "-m", "src.openwebui_mcp.main"]
+CMD ["uv", "run", "openwebui-mcp"]
