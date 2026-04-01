@@ -1,9 +1,5 @@
-"""Integration tests for MCP tools using FastMCP testing utilities.
+"""Integration tests for OpenAPI-generated MCP tools.
 
-Tests MCP tools properly return wrapped list responses and fixed endpoints
-return JSON instead of HTML.
-
-Requires MCP server and Open WebUI to be running.
 Run with: pytest tests/test_integration.py -v -m integration
 """
 
@@ -16,7 +12,6 @@ from fastmcp.client import Client
 MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", "http://127.0.0.1:8000/mcp")
 WEBUI_URL = os.getenv("WEBUI_URL", "http://127.0.0.1:3000")
 
-# Read API key from file for integration tests
 _api_key = ""
 try:
     with open(".openwebui-api-key") as f:
@@ -27,8 +22,6 @@ WEBUI_API_KEY = _api_key
 
 
 class BearerAuth(httpx.Auth):
-    """HTTPX auth class that adds Bearer token to requests."""
-
     def __init__(self, token: str):
         self.token = token
 
@@ -65,147 +58,138 @@ async def mcp_client():
 
 
 @pytest.mark.integration
-class TestEndpointVerification:
-    async def test_list_models_endpoint_returns_json(self, auth_token):
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{WEBUI_URL}/api/v1/models/list",
-                headers={"Authorization": f"Bearer {auth_token}"} if auth_token else {},
-            )
-            assert response.status_code == 200
-            assert response.headers["content-type"].startswith("application/json")
-            data = response.json()
-            assert isinstance(data, (list, dict))
+class TestServerConnectivity:
+    async def test_server_responds(self, mcp_client):
+        tools = await mcp_client.list_tools()
+        assert len(tools) > 0
 
-    async def test_get_config_endpoint_returns_json(self, auth_token):
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{WEBUI_URL}/api/v1/configs/export",
-                headers={"Authorization": f"Bearer {auth_token}"} if auth_token else {},
-            )
-            assert response.status_code == 200
-            assert response.headers["content-type"].startswith("application/json")
-            data = response.json()
-            assert isinstance(data, dict)
-
-    async def test_list_channels_returns_200(self, auth_token):
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{WEBUI_URL}/api/v1/channels/list",
-                headers={"Authorization": f"Bearer {auth_token}"} if auth_token else {},
-            )
-            assert response.status_code in [200, 403]
-
-    async def test_list_channels_endpoint_handles_permissions(self, auth_token):
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{WEBUI_URL}/api/v1/channels/list",
-                headers={"Authorization": f"Bearer {auth_token}"} if auth_token else {},
-            )
-            assert response.status_code in [200, 403]
+    async def test_tools_have_descriptions(self, mcp_client):
+        tools = await mcp_client.list_tools()
+        for tool in tools:
+            assert tool.description, f"Tool {tool.name} has no description"
 
 
 @pytest.mark.integration
-class TestMCPToolWrappers:
-    async def test_list_users_returns_dict_with_users(self, mcp_client):
-        result = await mcp_client.call_tool(name="list_users", arguments={})
+class TestUserEndpoints:
+    async def test_get_current_user(self, mcp_client):
+        result = await mcp_client.call_tool("auths_get", {})
         assert result.data is not None
         assert isinstance(result.data, dict)
-        assert "users" in result.data
-        assert isinstance(result.data["users"], list)
 
-    async def test_list_groups_returns_wrapped_dict(self, mcp_client):
-        result = await mcp_client.call_tool(name="list_groups", arguments={})
+    async def test_list_users(self, mcp_client):
+        result = await mcp_client.call_tool("users_list", {})
         assert result.data is not None
-        assert isinstance(result.data, dict)
-        assert "items" in result.data
-        assert isinstance(result.data["items"], list)
+        assert isinstance(result.data, (list, dict))
 
-    async def test_list_models_returns_wrapped_dict(self, mcp_client):
-        result = await mcp_client.call_tool(name="list_models", arguments={})
+
+@pytest.mark.integration
+class TestGroupEndpoints:
+    async def test_list_groups(self, mcp_client):
+        result = await mcp_client.call_tool("groups_list", {})
         assert result.data is not None
-        assert isinstance(result.data, dict)
-        assert "items" in result.data
-        assert isinstance(result.data["items"], list)
+        assert isinstance(result.data, (list, dict))
 
-    async def test_list_knowledge_bases_returns_wrapped_dict(self, mcp_client):
-        result = await mcp_client.call_tool(name="list_knowledge_bases", arguments={})
+
+@pytest.mark.integration
+class TestModelEndpoints:
+    async def test_list_models(self, mcp_client):
+        result = await mcp_client.call_tool("models_list", {})
         assert result.data is not None
-        assert isinstance(result.data, dict)
-        assert "items" in result.data
-        assert isinstance(result.data["items"], list)
+        assert isinstance(result.data, (list, dict))
 
-    async def test_list_files_returns_wrapped_dict(self, mcp_client):
-        result = await mcp_client.call_tool(name="list_files", arguments={})
+
+@pytest.mark.integration
+class TestKnowledgeEndpoints:
+    async def test_list_knowledge_bases(self, mcp_client):
+        result = await mcp_client.call_tool("knowledge_list", {})
         assert result.data is not None
-        assert isinstance(result.data, dict)
-        assert "items" in result.data
-        assert isinstance(result.data["items"], list)
+        assert isinstance(result.data, (list, dict))
 
-    async def test_list_prompts_returns_wrapped_dict(self, mcp_client):
-        result = await mcp_client.call_tool(name="list_prompts", arguments={})
+
+@pytest.mark.integration
+class TestFileEndpoints:
+    async def test_list_files(self, mcp_client):
+        result = await mcp_client.call_tool("files_list", {})
         assert result.data is not None
-        assert isinstance(result.data, dict)
-        assert "items" in result.data
-        assert isinstance(result.data["items"], list)
+        assert isinstance(result.data, (list, dict))
 
-    async def test_list_memories_returns_wrapped_dict(self, mcp_client):
-        result = await mcp_client.call_tool(name="list_memories", arguments={})
+
+@pytest.mark.integration
+class TestChatEndpoints:
+    async def test_list_chats(self, mcp_client):
+        result = await mcp_client.call_tool("chats_list", {})
         assert result.data is not None
-        assert isinstance(result.data, dict)
-        assert "items" in result.data
-        assert isinstance(result.data["items"], list)
+        assert isinstance(result.data, (list, dict))
 
-    async def test_list_chats_returns_wrapped_dict(self, mcp_client):
-        result = await mcp_client.call_tool(name="list_chats", arguments={})
+
+@pytest.mark.integration
+class TestPromptEndpoints:
+    async def test_list_prompts(self, mcp_client):
+        result = await mcp_client.call_tool("prompts_list", {})
         assert result.data is not None
-        assert isinstance(result.data, dict)
-        assert "items" in result.data
-        assert isinstance(result.data["items"], list)
+        assert isinstance(result.data, (list, dict))
 
-    async def test_list_folders_returns_wrapped_dict(self, mcp_client):
-        result = await mcp_client.call_tool(name="list_folders", arguments={})
+
+@pytest.mark.integration
+class TestMemoryEndpoints:
+    async def test_list_memories(self, mcp_client):
+        result = await mcp_client.call_tool("memories_list", {})
         assert result.data is not None
-        assert isinstance(result.data, dict)
-        assert "items" in result.data
-        assert isinstance(result.data["items"], list)
+        assert isinstance(result.data, (list, dict))
 
-    async def test_list_tools_returns_wrapped_dict(self, mcp_client):
-        result = await mcp_client.call_tool(name="list_tools", arguments={})
+
+@pytest.mark.integration
+class TestNoteEndpoints:
+    async def test_list_notes(self, mcp_client):
+        result = await mcp_client.call_tool("notes_list", {})
         assert result.data is not None
-        assert isinstance(result.data, dict)
-        assert "items" in result.data
-        assert isinstance(result.data["items"], list)
+        assert isinstance(result.data, (list, dict))
 
-    async def test_list_functions_returns_wrapped_dict(self, mcp_client):
-        result = await mcp_client.call_tool(name="list_functions", arguments={})
-        assert result.data is not None
-        assert isinstance(result.data, dict)
-        assert "items" in result.data
-        assert isinstance(result.data["items"], list)
 
-    async def test_list_notes_returns_wrapped_dict(self, mcp_client):
-        result = await mcp_client.call_tool(name="list_notes", arguments={})
-        assert result.data is not None
-        assert isinstance(result.data, dict)
-        assert "items" in result.data
-        assert isinstance(result.data["items"], list)
-
-    async def test_list_channels_returns_wrapped_dict(self, mcp_client):
+@pytest.mark.integration
+class TestChannelEndpoints:
+    async def test_list_channels(self, mcp_client):
         try:
-            result = await mcp_client.call_tool(name="list_channels", arguments={})
+            result = await mcp_client.call_tool("channels_list", {})
             assert result.data is not None
-            assert isinstance(result.data, dict)
-            assert "items" in result.data
-            assert isinstance(result.data["items"], list)
         except Exception as e:
             if "403" in str(e):
-                pytest.skip("User doesn't have permission to list channels")
+                pytest.skip("Permission denied for channels")
             raise
 
-    async def test_get_banners_returns_wrapped_dict(self, mcp_client):
-        result = await mcp_client.call_tool(name="get_banners", arguments={})
+
+@pytest.mark.integration
+class TestConfigEndpoints:
+    async def test_get_system_config(self, mcp_client):
+        result = await mcp_client.call_tool("configs_export", {})
         assert result.data is not None
         assert isinstance(result.data, dict)
-        assert "items" in result.data
-        assert isinstance(result.data["items"], list)
+
+    async def test_get_banners(self, mcp_client):
+        result = await mcp_client.call_tool("configs_banners", {})
+        assert result.data is not None
+        assert isinstance(result.data, (list, dict))
+
+
+@pytest.mark.integration
+class TestToolEndpoints:
+    async def test_list_tools(self, mcp_client):
+        result = await mcp_client.call_tool("tools_list", {})
+        assert result.data is not None
+        assert isinstance(result.data, (list, dict))
+
+
+@pytest.mark.integration
+class TestFunctionEndpoints:
+    async def test_list_functions(self, mcp_client):
+        result = await mcp_client.call_tool("functions_list", {})
+        assert result.data is not None
+        assert isinstance(result.data, (list, dict))
+
+
+@pytest.mark.integration
+class TestFolderEndpoints:
+    async def test_list_folders(self, mcp_client):
+        result = await mcp_client.call_tool("folders_list", {})
+        assert result.data is not None
+        assert isinstance(result.data, (list, dict))
