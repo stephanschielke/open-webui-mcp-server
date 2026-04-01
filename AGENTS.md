@@ -4,7 +4,21 @@
 
 ## Project Overview
 
-Python-based MCP (Model Context Protocol) server for Open WebUI. Exposes admin APIs as MCP tools for AI assistants. Built with FastMCP, httpx, Pydantic, and uvicorn.
+Python-based MCP (Model Context Protocol) server for Open WebUI. Auto-generates ~317 tools from OpenWebUI's OpenAPI spec using FastMCP v3. Built with `fastmcp>=3`, `httpx`, `pydantic`, and `uvicorn`.
+
+## Architecture
+
+Tools are auto-generated from `src/openwebui_mcp/specs/open-webui.openapi.json` via `FastMCP.from_openapi()`. No handcrafted tool definitions. Auth passthrough injects per-request Bearer tokens.
+
+```
+src/openwebui_mcp/
+├── __init__.py          # Package init
+├── main.py              # CLI entry point, transport selection
+├── auth.py              # Context-var token storage, ASGI middleware
+├── openapi_provider.py  # OpenAPI loader, AuthTransport, route curation
+└── specs/
+    └── open-webui.openapi.json  # OpenAPI spec (bundled in wheel)
+```
 
 ## Quick Commands
 
@@ -12,128 +26,84 @@ Python-based MCP (Model Context Protocol) server for Open WebUI. Exposes admin A
 # Install in development mode
 pip install -e ".[dev]"
 
-# Lint (Ruff - configured in pyproject.toml)
-ruff check .
+# Lint (Ruff)
 ruff check src/ tests/
 
-# Format (Ruff)
+# Format
 ruff format .
 
-# Run all tests
-pytest
+# Run integration tests (requires Docker Compose)
+WEBUI_API_KEY=$(cat .openwebui-api-key) WEBUI_URL="http://127.0.0.1:3000" \
+  MCP_SERVER_URL="http://127.0.0.1:8000/mcp" \
+  pytest tests/test_integration.py -v -m integration
 
-# Run a single test file
-pytest tests/test_client_changes.py
+# Run a single test
+pytest tests/test_integration.py::TestUserEndpoints::test_get_current_user -v
 
-# Run a single test function
-pytest tests/test_client_changes.py::test_create_tool_payload -v
+# Build package
+python -m build
 
-# Run only unit tests (exclude integration)
-pytest -m "not integration"
+# Start Docker Compose (Open WebUI + MCP server)
+docker compose up -d
 
-# Run only integration tests
-pytest -m integration
+# Rebuild and restart MCP server container
+docker compose up -d --build open-webui-mcp-server
 ```
 
-## Code Style Guidelines
+## Code Style
 
-### Formatting & Linting
-- **Formatter**: Ruff (`ruff format`)
-- **Linter**: Ruff with rules E, F, I, W (errors, pyflakes, imports, warnings)
-- **Line length**: 100 characters
-- **Target Python**: 3.10+
+- **Formatter/Linter**: Ruff — rules E, F, I, W — line length 100 — target Python 3.10+
+- **Imports**: stdlib → third-party → local (Ruff auto-sorts)
+- **Naming**: `snake_case` functions/variables, `PascalCase` classes, `UPPER_SNAKE_CASE` constants
+- **Types**: Annotate public function signatures; use `typing` module for complex types
+- **Error Handling**: Raise exceptions; let callers decide handling; include context in messages
 
-### Imports
-- Follow Ruff's import sorting (isort-like)
-- Group: stdlib → third-party → local
-- Use explicit imports (no star imports)
+## MCP Tool Generation
 
-### Naming
-- **Functions/variables**: `snake_case`
-- **Classes**: `PascalCase`
-- **Constants**: `UPPER_SNAKE_CASE`
-- **Files**: `snake_case.py`
+Tools are auto-generated from the OpenAPI spec. Control which endpoints become tools via `RouteMap` in `openapi_provider.py`:
 
-### Types
-- Use type annotations on public function signatures
-- Use `typing` module for complex types (Optional, List, Dict, etc.)
-- Pydantic models for request/response structures
-
-### Error Handling
-- Raise exceptions for error conditions, don't return sentinel values
-- Let callers decide handling
-- Use descriptive error messages with context
-
-### Pydantic Models
-- Name parameter classes with `Param` suffix (e.g., `UserCreateParam`)
-- Use `Optional` with explicit defaults
-- Document optional fields clearly
-
-### Project Structure
-```
-src/openwebui_mcp/
-├── __init__.py      # Package init, exports
-├── main.py          # CLI entry point, transport handling
-├── auth.py          # Auth middleware, token management
-├── client.py        # OpenWebUIClient HTTP wrapper
-├── server.py        # MCP tool definitions
-└── models.py        # Pydantic parameter models
-
-tests/
-├── test_client_changes.py    # Client payload tests
-├── test_mcp_wrapper_logic.py # MCP wrapper tests
-└── test_integration.py       # Integration tests (require docker-compose)
+```python
+RouteMap(pattern=r"^/ollama/.*", mcp_type=MCPType.EXCLUDE)
+RouteMap(pattern=r"^/openai/.*", mcp_type=MCPType.EXCLUDE)
+RouteMap(pattern=r"^/api/v1/analytics/.*", mcp_type=MCPType.EXCLUDE)
+RouteMap(pattern=r"^/api/v1/evaluations/.*", mcp_type=MCPType.EXCLUDE)
+RouteMap(pattern=r"^/api/v1/terminals/.*", mcp_type=MCPType.EXCLUDE)
+RouteMap(pattern=r"^/api/v1/pipelines/.*", mcp_type=MCPType.EXCLUDE)
+RouteMap(pattern=r"^/api/(?!v1/).*", mcp_type=MCPType.EXCLUDE)
+RouteMap(mcp_type=MCPType.TOOL, mcp_tags={"openapi", "auto-generated"})
 ```
 
-### Test Conventions
-- Test files: `test_*.py`
-- Use `@pytest.mark.asyncio` for async tests
-- Use `@pytest.mark.integration` for tests requiring running Open WebUI
-- Use `pytest -m "not integration"` to skip integration tests
-- Mock `httpx.AsyncClient` for unit tests
-- Tests verify exact payload shapes
+**Tool naming**: Derived from OpenAPI operationId (e.g., `get_users_api_v1_users`).
 
-### MCP Tools
-- Each tool wraps an Open WebUI API endpoint
-- Use `get_user_token()` to fetch current user's token
-- List responses wrapped as `{"items": [...]}`
-- Use Pydantic models for tool parameters
+**Known issue**: `list_files_api_v1_files` returns `{"items": [], "total": 0}` but the OpenAPI spec declares an array output. FastMCP validates outputs and rejects this. Integration tests skip this case.
+
+## Auth Flow
+
+1. HTTP requests carry `Authorization: Bearer <token>` header
+2. `AuthMiddleware` (ASGI) extracts token → sets `_current_user_token` context var
+3. `AuthTransport` (httpx) reads context var → injects Bearer header on every outbound request
+4. Fallback: `WEBUI_API_KEY` env var if no per-request token
 
 ## Environment Variables
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `WEBUI_URL` | Yes | - | Open WebUI instance URL |
-| `WEBUI_API_KEY` | No | - | Default API key |
+| `WEBUI_API_KEY` | No | - | Default API key (fallback) |
 | `MCP_TRANSPORT` | No | `stdio` | `stdio` or `http` |
 | `MCP_HTTP_HOST` | No | `127.0.0.1` | HTTP host |
 | `MCP_HTTP_PORT` | No | `8000` | HTTP port |
 | `MCP_HTTP_PATH` | No | `/mcp` | HTTP path |
 
-## Common Tasks
+## Docker
 
-### Running the server (stdio mode)
-```bash
-export WEBUI_URL=https://your-instance.com
-openwebui-mcp
-```
+- Specs must be bundled in the wheel: `include = ["src/openwebui_mcp/specs/*.json"]` in `pyproject.toml`
+- Dockerfile copies specs and runs `uv sync --locked` (installs project at build time)
+- `PATH` includes `.venv/bin` so `openwebui-mcp` entry point is found
 
-### Running the server (HTTP mode)
-```bash
-export WEBUI_URL=https://your-instance.com
-export MCP_TRANSPORT=http
-export MCP_HTTP_PORT=8000
-openwebui-mcp
-```
+## Test Conventions
 
-### Running with Docker
-```bash
-docker compose up -d
-```
-
-## Notes
-
-- Integration tests require a running Open WebUI instance (use docker-compose)
-- Token handling via `auth.py` uses context variables for thread-safe per-request token storage
-- The `.opencode/` directory contains OpenCode-specific config, not runtime code
-- Large files (>500 lines): `client.py`, `server.py`, `test_client_changes.py` - consider domain-based refactoring when modifying
+- All tests are integration tests (`@pytest.mark.integration`) — no unit tests (no handcrafted code to unit-test)
+- Tests verify tool calls return non-null data across 14 endpoint categories
+- Use `pytest.skip()` for known OpenAPI spec mismatches
+- Test file: `tests/test_integration.py` (18 tests, ~150 lines)
