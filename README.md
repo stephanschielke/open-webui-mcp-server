@@ -7,7 +7,7 @@
 
 A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that exposes [Open WebUI](https://github.com/open-webui/open-webui)'s admin APIs as tools, allowing AI assistants to manage users, groups, models, knowledge bases, and more.
 
-Built with [FastMCP](https://gofastmcp.com/) and designed for seamless integration with Claude Desktop, Open WebUI, and any MCP-compatible client.
+Built with [FastMCP v3](https://gofastmcp.com/) — tools are auto-generated from Open WebUI's OpenAPI spec (~317 tools). Designed for seamless integration with Claude Desktop, Open WebUI, and any MCP-compatible client.
 
 ## Features
 
@@ -145,6 +145,8 @@ This starts:
 
 ## Available Tools
 
+This server auto-generates ~317 MCP tools from Open WebUI's OpenAPI spec. Tool names follow the pattern `{operationId}` (e.g., `get_users_api_v1_users`). Below are the main categories covered:
+
 ### User Management
 
 | Tool               | Description                      | Permission |
@@ -281,30 +283,31 @@ This starts:
 
 ## Programmatic Usage
 
-You can also use the client library directly:
+Connect to the MCP server from any MCP-compatible client:
 
 ```python
-from openwebui_mcp.client import OpenWebUIClient
+from fastmcp.client import Client
+import httpx
 
-client = OpenWebUIClient(
-    base_url="https://your-openwebui-instance.com",
-    api_key="your-api-key"
-)
+class BearerAuth(httpx.Auth):
+    def __init__(self, token):
+        self.token = token
+    def auth_flow(self, request):
+        request.headers["Authorization"] = f"Bearer {self.token}"
+        yield request
 
-# List all users (admin only)
-users = await client.list_users()
-
-# Create a group
-group = await client.create_group("Engineering", "Engineering team")
-
-# Create a custom model
-model = await client.create_model(
-    id="my-assistant",
-    name="My Assistant",
-    base_model_id="gpt-4",
-    meta={"system": "You are a helpful assistant."},
-    params={"temperature": 0.7}
-)
+async with Client("http://localhost:8000/mcp", auth=BearerAuth("your-api-key")) as client:
+    # List all users (admin only)
+    users = await client.call_tool("get_users_api_v1_users", {})
+    
+    # Create a group
+    group = await client.call_tool("create_new_group_api_v1_groups_create_post", {
+        "name": "Engineering",
+        "description": "Engineering team"
+    })
+    
+    # List models
+    models = await client.call_tool("get_models_api_v1_models_list_get", {})
 ```
 
 ## Related Projects
