@@ -19,8 +19,6 @@ Thank you for your interest in contributing! This guide will help you get starte
 
 ### Option 1: Using mise (Recommended)
 
-[mise](https://mise.jdx.dev/) manages your development tools, environment, and tasks in one place:
-
 ```bash
 # Install mise (if not already installed)
 curl https://mise.run | sh
@@ -71,11 +69,13 @@ mise run owu:tests:all
 # Or with uv directly
 uv run pytest tests/ -v
 
-# Run specific test file
-uv run pytest tests/test_client_changes.py -v
+# Run integration tests (requires Docker Compose)
+WEBUI_API_KEY=$(cat .openwebui-api-key) WEBUI_URL="http://127.0.0.1:3000" \
+  MCP_SERVER_URL="http://127.0.0.1:8000/mcp" \
+  pytest tests/test_integration.py -v -m integration
 
-# Run unit tests only (no Docker required)
-uv run pytest tests/test_client_changes.py tests/test_mcp_wrapper_logic.py -v
+# Run a single test
+pytest tests/test_integration.py::TestUserEndpoints::test_get_current_user -v
 ```
 
 ### Running Integration Tests
@@ -103,8 +103,8 @@ mise run owu:linter:check
 mise run owu:linter:fix
 
 # Or with ruff directly
-ruff --config pyproject.toml check src/ tests/
-ruff --config pyproject.toml check --fix src/ tests/
+ruff check src/ tests/
+ruff check --fix src/ tests/
 ```
 
 ### Running the Server Locally
@@ -129,22 +129,20 @@ openwebui-mcp
 open-webui-mcp-server/
 ├── src/
 │   └── openwebui_mcp/
-│       ├── __init__.py
-│       ├── main.py          # Entry point and server startup
-│       ├── server.py        # MCP tool definitions
-│       ├── client.py        # Open WebUI API client
-│       ├── auth.py          # Authentication middleware
-│       └── models.py        # Pydantic models for parameters
+│       ├── __init__.py           # Package init
+│       ├── main.py               # CLI entry point, transport selection
+│       ├── auth.py               # Context-var token storage, ASGI middleware
+│       ├── openapi_provider.py   # OpenAPI loader, AuthTransport, route curation
+│       └── specs/
+│           └── open-webui.openapi.json  # OpenAPI spec (bundled in wheel)
 ├── tests/
-│   ├── test_integration.py      # Integration tests (requires Docker)
-│   ├── test_client_changes.py   # Unit tests for client
-│   └── test_mcp_wrapper_logic.py # Tests for list wrapping
+│   └── test_integration.py       # Integration tests (requires Docker)
 ├── scripts/
-│   └── init-api-key.sh      # Script to initialize API key
-├── compose.yaml             # Docker Compose configuration
-├── Dockerfile               # Docker image definition
-├── pyproject.toml           # Project metadata and dependencies
-└── mise.toml                # mise task and tool configuration
+│   └── init-api-key.sh           # Script to initialize API key
+├── compose.yaml                  # Docker Compose configuration
+├── Dockerfile                    # Docker image definition
+├── pyproject.toml                # Project metadata and dependencies
+└── mise.toml                     # mise task and tool configuration
 ```
 
 ## Architecture
@@ -152,91 +150,66 @@ open-webui-mcp-server/
 ### Core Components
 
 1. **main.py**: Entry point that initializes the MCP server
-    - Validates required environment variables
-    - Configures transport (stdio or HTTP)
-    - Wraps HTTP app with authentication middleware
+   - Validates required environment variables
+   - Configures transport (stdio or HTTP)
+   - Wraps HTTP app with authentication middleware
 
-2. **server.py**: MCP tool definitions
-    - Uses FastMCP decorators to define tools
-    - Each tool calls the Open WebUI client
-    - Handles list-to-dict wrapping for consistent responses
+2. **openapi_provider.py**: OpenAPI-based tool generation
+   - Loads `specs/open-webui.openapi.json`
+   - Creates `AuthTransport` (custom httpx transport that injects Bearer tokens)
+   - Configures `RouteMap` exclusions (ollama, openai, analytics, etc.)
+   - Calls `FastMCP.from_openapi()` to auto-generate ~317 tools
 
-3. **client.py**: Open WebUI API client
-    - Encapsulates all HTTP calls to Open WebUI
-    - Passes user tokens via Bearer authentication
-    - Provides high-level methods for each resource type
+3. **auth.py**: Authentication handling
+   - `_current_user_token` context variable for per-request token storage
+   - `AuthMiddleware` (ASGI) extracts Bearer tokens from incoming requests
+   - Falls back to `WEBUI_API_KEY` environment variable
 
-4. **auth.py**: Authentication handling
-    - Extracts Bearer tokens from requests
-    - Maintains per-request user context
-    - Falls back to WEBUI_API_KEY environment variable
+### How Tools Are Generated
 
-5. **models.py**: Parameter validation
-    - Pydantic models for tool inputs
-    - Ensures type safety for MCP tool parameters
+Tools are auto-generated from the OpenAPI spec — no handcrafted tool definitions. Each OpenAPI endpoint becomes an MCP tool with its name derived from the `operationId` (e.g., `get_users_api_v1_users`).
 
-### Adding a New Tool
-
-1. Add a Pydantic model in `models.py`:
+To exclude endpoints from becoming tools, add `RouteMap` entries in `openapi_provider.py`:
 
 ```python
-class MyNewParam(BaseModel):
-    name: str
-    description: str | None = None
+RouteMap(pattern=r"^/api/v1/analytics/.*", mcp_type=MCPType.EXCLUDE)
 ```
 
-2. Add a client method in `client.py`:
+### Updating the OpenAPI Spec
 
-```python
-async def my_new_action(self, name: str, description: str | None = None, api_key: str | None = None) -> dict:
-    payload = {"name": name}
-    if description:
-        payload["description"] = description
-    return await self.post("/api/v1/my-endpoint", payload, api_key)
+When Open WebUI adds new API endpoints:
+
+```bash
+# Dump the latest spec from a running Open WebUI instance
+mise run owu:api:dump-spec
+
+# Rebuild and restart
+docker compose up -d --build open-webui-mcp-server
 ```
-
-3. Add a tool in `server.py`:
-
-```python
-@mcp.tool()
-async def my_new_tool(params: MyNewParam) -> dict[str, Any]:
-    """Description of what this tool does."""
-    return await get_client().my_new_action(params.name, params.description, get_user_token())
-```
-
-4. Add tests in `tests/test_client_changes.py`
 
 ## Testing Guidelines
 
-### Unit Tests
-
-- Test parameter validation and payload shapes
-- Test list-to-dict wrapping logic
-- No external dependencies required
-
 ### Integration Tests
 
-- Require running Open WebUI instance
-- Test actual API calls and responses
-- Use Docker Compose for consistent environment
+- All tests are integration tests (`@pytest.mark.integration`)
+- Tests verify tool calls return non-null data across 14 endpoint categories
+- Use `pytest.skip()` for known OpenAPI spec mismatches
+- Test file: `tests/test_integration.py` (18 tests)
 
-### Test Coverage
+### Known Test Skip
 
-```bash
-# Run tests with coverage
-uv run pytest tests/ --cov=openwebui_mcp --cov-report=html
-```
+`test_list_files` — The OpenAPI spec declares an array output but the actual API returns `{"items": [], "total": 0}`. FastMCP validates outputs and rejects this mismatch. This is an OpenAPI spec bug in Open WebUI.
 
 ## Docker Development
 
 ### Building the Image
 
 ```bash
-# Build locally
-docker build -t openwebui-mcp-server:dev .
+# Build with Docker Compose
+docker compose up -d --build open-webui-mcp-server
 
-# Or with mise
-mise run owu:docker:build
+# Or standalone
+docker build -t openwebui-mcp-server:dev .
 ```
 
 ### Running with Docker Compose
@@ -251,6 +224,12 @@ docker compose logs -f open-webui-mcp-server
 # Rebuild and restart
 docker compose up -d --build
 ```
+
+### Dockerfile Notes
+
+- `uv sync --locked` installs the project at build time (not runtime)
+- `PATH` includes `.venv/bin` so `openwebui-mcp` entry point is found
+- Specs are bundled in the wheel via `include = ["src/openwebui_mcp/specs/*.json"]`
 
 ## Local GitHub Actions Testing
 
@@ -272,6 +251,7 @@ mise run owu:gha:act
 - Keep functions focused and small
 - Use `snake_case` for functions and variables
 - Use `PascalCase` for classes
+- Ruff rules: E, F, I, W — line length 100 — target Python 3.10+
 
 ## Pull Request Process
 
@@ -283,16 +263,16 @@ mise run owu:gha:act
 
 ## Release Process
 
-Releases are automated via GitHub Actions. See [PUBLISHING_GUIDE.md](.github/workflows/PUBLISHING_GUIDE.md) for details.
+Releases are automated via GitHub Actions.
 
 Quick release:
 
 ```bash
 # Prepare a release (runs checks, bumps version, creates tag)
-mise run release:prepare 0.2.1
+mise run release:prepare 0.2.2
 
 # Push to trigger GitHub Actions
-git push fork v0.2.1
+git push fork v0.2.2
 ```
 
 ## Getting Help
