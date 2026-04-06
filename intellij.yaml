@@ -1,0 +1,6 @@
+sharedIndex:
+  project:
+    - url: http://127.0.0.1:25561/project/open-webui-mcp-server
+  consents:
+    - kind: project
+      decision: allowed
